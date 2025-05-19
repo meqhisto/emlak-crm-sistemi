@@ -1,26 +1,15 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue' // Örnek bir view
+import { createApp } from 'vue'
+import { createPinia } from 'pinia'
 
-const routes = [
-  {
-    path: '/',
-    name: 'home',
-    component: HomeView
-  },
-  {
-    path: '/about',
-    name: 'about',
-    // route level code-splitting
-    // this generates a separate chunk (About.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import('../views/AboutView.vue') // Örnek
-  }
-  // Diğer route'lar buraya eklenecek
-]
+import App from './App.vue'
+import router from './router'
 
-const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
-  routes
-})
+// Genel stiller (eğer varsa)
+// import './assets/styles/global.css' // Bu dosyayı oluşturmanız gerekebilir
 
-export default router
+const app = createApp(App)
+
+app.use(createPinia()) // Pinia'yı etkinleştir
+app.use(router)        // Vue Router'ı etkinleştir
+
+app.mount('#app')
