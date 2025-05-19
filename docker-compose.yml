@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: emlak_crm_db_container
+    restart: unless-stopped
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432" # Host port:Container port
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-kullanici_adiniz} # .env (ana dizin) veya varsayılan
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sifreniz} # .env (ana dizin) veya varsayılan
+      POSTGRES_DB: ${POSTGRES_DB:-emlak_crm_db}       # .env (ana dizin) veya varsayılan
+    networks:
+      - emlak-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: emlak_crm_backend_container
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend:/app # Geliştirme için: hosttaki değişiklikler container'a yansır
+      # - ./backend/uploads:/app/uploads # Eğer yerel depolama kullanılıyorsa
+    env_file:
+      - ./backend/.env # Backend'in kendi .env dosyasını kullanır
+    depends_on:
+      - db # Veritabanı başladıktan sonra başlar
+    networks:
+      - emlak-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      # Build argümanları (eğer Dockerfile'da ARG tanımladıysanız)
+      # args:
+      #   VITE_API_BASE_URL: http://localhost:5000/api # Tarayıcıdan erişim için
+      #   # Veya Nginx reverse proxy kullanılıyorsa /api
+    container_name: emlak_crm_frontend_container
+    restart: unless-stopped
+    ports:
+      - "5173:80" # Hosttaki 5173 portunu container'daki Nginx'in 80 portuna yönlendir
+    volumes:
+      - ./frontend/src:/app/src # Geliştirme için: hosttaki değişiklikler container'a yansır (HMR)
+    # env_file:
+    #   - ./frontend/.env # Frontend .env genellikle build sırasında VITE_* ile kullanılır
+    depends_on:
+      - backend # Backend başladıktan sonra başlar (opsiyonel, API çağrıları için)
+    networks:
+      - emlak-network
+
+volumes:
+  postgres_data: # Veritabanı verilerinin kalıcı olmasını sağlar
+    driver: local
+
+networks:
+  emlak-network:
+    driver: bridge
