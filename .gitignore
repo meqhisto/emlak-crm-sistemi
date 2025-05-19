@@ -1,0 +1,26 @@
+# Node
+node_modules/
+dist/
+.env
+.env.*
+!/.env.example # .env.example'ı hariç tutma
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor directories and files
+# .idea # Ana .gitignore'da olabilir
+# .vscode # Ana .gitignore'da olabilir
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Vite / Vue CLI specific
+coverage/
+# local server specific files
+.DS_Store
