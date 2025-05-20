@@ -1,9 +1,25 @@
+# Python
+venv/
+*.pyc
+__pycache__/
+instance/
+*.sqlite3
+*.db
+*.log
+.env
+
+# Coverage
+.coverage
+htmlcov/
+
+# Build
+dist/
+build/
+*.egg-info/
+
 # Node
 node_modules/
-dist/
-.env
-.env.*
-!/.env.example # .env.example'ı hariç tutma
+# dist/ # Frontend build çıktıları için ayrı .gitignore veya burada olabilir
 
 # Logs
 npm-debug.log*
@@ -12,16 +28,20 @@ yarn-error.log*
 pnpm-debug.log*
 
 # Editor directories and files
-# .idea # Ana .gitignore'da olabilir
-# .vscode # Ana .gitignore'da olabilir
+.idea/
+.vscode/
+*.swp
+*.swo
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
-*.sw?
 
-# Vite / Vue CLI specific
-coverage/
-# local server specific files
+# OS generated files
 .DS_Store
+Thumbs.db
 
+# Frontend specific (if not in frontend/.gitignore)
+# .env # Frontend'in kendi .env'si için
+# .env.*
+# !.env.example
