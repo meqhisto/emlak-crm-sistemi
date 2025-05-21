@@ -2,29 +2,34 @@
   <div id="app-container">
     <header class="app-header">
       <nav>
-        <router-link to="/">Ana Sayfa</router-link> |
-        <router-link to="/about">Hakkında</router-link> |
+        <router-link to="/">Ana Sayfa</router-link>
+        <router-link v-if="isAuthenticated" to="/customers">Müşteriler</router-link>
+        <router-link v-if="isAuthenticated" to="/properties">Portföyler</router-link> <!-- PORTFÖY LİNKİ BURADA -->
+        <!-- Diğer modül linkleri buraya eklenecek (Görevler, Projeler vb.) -->
 
-        <!-- Müşteri Yönetimi Linki (Giriş yapmış tüm kullanıcılar görebilir) -->
-        <router-link v-if="isAuthenticated" to="/customers">Müşteriler</router-link> |
+        <span class="spacer"></span> <!-- Linkleri sola, kullanıcı bilgilerini/butonları sağa ayırmak için -->
 
-        <template v-if="isAdmin">
-          <router-link to="/admin/users">Kullanıcılar</router-link> |
-          <router-link to="/admin/offices">Ofisler</router-link> |
-        </template>
+        <router-link v-if="isAdmin" to="/admin/users" class="admin-link">Kullanıcı Yön.</router-link>
+        <router-link v-if="isAdmin" to="/admin/offices" class="admin-link">Ofis Yön.</router-link>
+        <router-link to="/about" class="secondary-link">Hakkında</router-link>
+
         <template v-if="!isAuthenticated">
-          <router-link to="/login">Giriş Yap</router-link> |
-          <router-link to="/register">Kayıt Ol</router-link>
+          <router-link to="/login" class="auth-link">Giriş Yap</router-link>
+          <router-link to="/register" class="auth-link register">Kayıt Ol</router-link>
         </template>
         <template v-else>
-          <span>Merhaba, {{ currentUser?.username || 'Kullanıcı' }}!</span> |
+          <span class="user-greeting">Merhaba, {{ currentUser?.username || 'Kullanıcı' }}!</span>
           <button @click="handleLogout" class="logout-button">Çıkış Yap</button>
         </template>
       </nav>
     </header>
 
     <main class="app-main">
-      <router-view />
+      <router-view v-slot="{ Component }">
+        <transition name="fade" mode="out-in">
+          <component :is="Component" />
+        </transition>
+      </router-view>
     </main>
 
     <footer class="app-footer">
@@ -36,10 +41,10 @@
 <script setup>
 import { computed, onMounted } from 'vue';
 import { useAuthStore } from './store/modules/auth';
-import { useRouter } from 'vue-router'; // Eğer logout sonrası yönlendirme için gerekirse
+// import { useRouter } from 'vue-router'; // Artık logout içinde yönlendirme var
 
 const authStore = useAuthStore();
-const router = useRouter(); // Gerekirse
+// const router = useRouter();
 
 const appTitle = computed(() => import.meta.env.VITE_APP_TITLE || 'Emlak CRM');
 const isAuthenticated = computed(() => authStore.isAuthenticated);
@@ -47,7 +52,7 @@ const currentUser = computed(() => authStore.currentUser);
 const isAdmin = computed(() => authStore.isAdmin);
 
 onMounted(() => {
-  authStore.checkAuthStatus(); // Uygulama yüklendiğinde auth durumunu kontrol et
+  authStore.checkAuthStatus();
 });
 
 const handleLogout = () => {
@@ -57,14 +62,14 @@ const handleLogout = () => {
 </script>
 
 <style>
-/* Temel Global Stiller (src/assets/styles/global.css'e taşınabilir) */
+/* Temel Global Stiller */
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
-  background-color: #f4f6f8;
+  background-color: #f4f6f8; /* Hafif gri arka plan */
 }
 
 #app-container {
@@ -75,40 +80,70 @@ body {
 
 .app-header {
   background-color: #ffffff;
-  padding: 1rem 1.5rem;
+  padding: 0 1.5rem; /* Dikey padding'i nav item'larına bırakalım */
   border-bottom: 1px solid #e0e0e0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  position: sticky; /* Üstte sabit kalması için */
+  top: 0;
+  z-index: 100; /* Diğer elementlerin üzerinde kalması için */
 }
 
 .app-header nav {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  /* Linkler arası boşluk */
+  height: 60px; /* Sabit yükseklik */
+  gap: 0.5rem; /* Linkler arası boşluk */
 }
 
-.app-header nav a {
+.app-header nav a, .app-header nav .user-greeting {
   font-weight: 500;
   color: #333;
   text-decoration: none;
-  padding: 0.5rem 0;
-  transition: color 0.2s ease-in-out;
+  padding: 0.5rem 0.75rem; /* Padding'i arttırdık */
+  border-radius: 4px;
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+  white-space: nowrap; /* Linklerin kırılmasını engelle */
 }
 
 .app-header nav a:hover {
-  color: #42b983;
+  background-color: #f0f0f0;
+  color: #28a745; /* Yeşil hover rengi */
 }
 
 .app-header nav a.router-link-exact-active {
-  color: #42b983;
-  border-bottom: 2px solid #42b983;
+  background-color: #e6f7ff; /* Aktif link için açık mavi arka plan */
+  color: #096dd9; /* Aktif link için mavi renk */
+}
+.app-header nav a.admin-link.router-link-exact-active {
+  background-color: #fff1b8; /* Admin aktif link için sarımsı */
+  color: #d46b08;
 }
 
-.app-header nav span {
-  margin-left: auto;
-  /* Merhaba mesajını sağa yasla */
-  color: #555;
+.spacer {
+    margin-left: auto; /* Navigasyonun sol ve sağ gruplarını ayırır */
 }
+
+.app-header nav .user-greeting {
+    color: #555;
+    padding-right: 0.5rem; /* Logout butonuyla arasına boşluk */
+}
+.app-header nav .secondary-link {
+    font-size: 0.9em;
+    color: #555;
+}
+.app-header nav .auth-link {
+    border: 1px solid transparent;
+}
+.app-header nav .auth-link.register {
+    background-color: #52c41a;
+    color: white;
+    border-color: #52c41a;
+}
+.app-header nav .auth-link.register:hover {
+    background-color: #389e0d;
+    border-color: #389e0d;
+}
+
 
 .logout-button {
   background: none;
@@ -120,7 +155,6 @@ body {
   border-radius: 4px;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
-
 .logout-button:hover {
   background-color: #ff4d4f;
   color: white;
@@ -129,12 +163,10 @@ body {
 .app-main {
   flex-grow: 1;
   padding: 1.5rem;
-  max-width: 1200px;
-  /* İçerik için maksimum genişlik */
-  margin: 0 auto;
-  /* Ortala */
-  width: 100%;
-  box-sizing: border-box;
+  /* max-width: 1200px; /* Sayfa bazlı ayarlanabilir */
+  /* margin: 0 auto; */
+  /* width: 100%; */
+  /* box-sizing: border-box; */
 }
 
 .app-footer {
@@ -144,152 +176,104 @@ body {
   padding: 1rem;
   font-size: 0.9em;
   margin-top: auto;
-  /* Sayfa içeriği kısa olsa bile altta kalmasını sağlar */
+}
+
+/* Genel Sayfa Konteyneri Stili (AdminPageContainer ve PageContainer için) */
+.admin-page-container, .page-container {
+  background-color: #fff;
+  padding: 1.5rem 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin-bottom: 2rem; /* Sayfalar arası boşluk */
 }
 
 /* Genel Form Stilleri */
-.form-group {
-  margin-bottom: 1rem;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-  color: #333;
-}
-
+.form-group { margin-bottom: 1rem; }
+.form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; color: #495057; }
 .form-group input[type="text"],
 .form-group input[type="email"],
 .form-group input[type="password"],
 .form-group input[type="tel"],
+.form-group input[type="number"],
+.form-group input[type="date"],
 .form-group textarea,
 .form-group select {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-sizing: border-box;
-  font-size: 1rem;
-  transition: border-color 0.2s ease;
+  width: 100%; padding: 0.65rem 0.75rem;
+  border: 1px solid #ced4da; border-radius: 4px; box-sizing: border-box;
+  font-size: 0.95rem;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
-
-.form-group input:focus,
-.form-group textarea:focus,
-.form-group select:focus {
-  border-color: #42b983;
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(66, 185, 131, 0.2);
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+  border-color: #80bdff; outline: 0;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 }
+.form-group textarea { min-height: 100px; resize: vertical; }
 
-.form-group textarea {
-  min-height: 100px;
-  resize: vertical;
+.form-check { display: flex; align-items: center; margin-top: 0.5rem;}
+.form-check input[type="checkbox"] { margin-right: 0.5rem; width: auto; height: auto; }
+.form-check-label { font-weight: normal; margin-bottom: 0;}
+
+.action-button, button[type="submit"] { /* Genel buton stili */
+  padding: 0.6rem 1.2rem; background-color: #007bff; /* Mavi tema */
+  color: white; border: none; border-radius: 4px; cursor: pointer;
+  font-size: 0.95rem; font-weight: 500;
+  transition: background-color 0.15s ease-in-out;
+  text-decoration: none;
+  display: inline-block;
+  line-height: normal;
 }
+.action-button:hover, button[type="submit"]:hover { background-color: #0056b3; }
+button:disabled, .action-button:disabled { background-color: #adb5bd; cursor: not-allowed; }
 
-button[type="submit"],
-.action-button {
-  padding: 0.75rem 1.5rem;
-  background-color: #42b983;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1rem;
-  font-weight: 500;
-  transition: background-color 0.2s ease;
-}
-
-button[type="submit"]:hover,
-.action-button:hover {
-  background-color: #36a471;
-}
-
-button:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
-}
-
+/* Hata ve Başarı Mesajları */
 .error-message {
-  color: #ff4d4f;
-  /* Kırmızı */
-  background-color: #fff1f0;
-  border: 1px solid #ffccc7;
-  padding: 0.75rem;
-  border-radius: 4px;
-  margin-top: 1rem;
-  font-size: 0.9em;
+  color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb;
+  padding: 0.75rem 1.25rem; border-radius: 4px; margin-top: 1rem; font-size: 0.9em;
 }
-
 .success-message {
-  color: #52c41a;
-  /* Yeşil */
-  background-color: #f6ffed;
-  border: 1px solid #b7eb8f;
-  padding: 0.75rem;
-  border-radius: 4px;
-  margin-top: 1rem;
-  font-size: 0.9em;
+  color: #155724; background-color: #d4edda; border: 1px solid #c3e6cb;
+  padding: 0.75rem 1.25rem; border-radius: 4px; margin-top: 1rem; font-size: 0.9em;
 }
 
 /* Genel Tablo Stilleri */
 table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 1rem;
-  background-color: #fff;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border-radius: 4px;
+  width: 100%; border-collapse: collapse; margin-top: 1.5rem;
+  background-color: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+  border-radius: 6px;
   overflow: hidden;
-  /* border-radius'un th/td'yi kapsaması için */
 }
-
-th,
-td {
-  border-bottom: 1px solid #e0e0e0;
-  padding: 0.8rem 1rem;
-  text-align: left;
-  font-size: 0.95rem;
+th, td {
+  border-bottom: 1px solid #dee2e6; padding: 0.9rem 1rem;
+  text-align: left; font-size: 0.9rem;
+  vertical-align: middle;
 }
-
 th {
-  background-color: #f8f9fa;
-  font-weight: 600;
-  color: #333;
+  background-color: #f8f9fa; font-weight: 600; color: #495057;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover { background-color: #f1f3f5; }
+
+.table-actions button, .table-actions .action-button {
+  margin-right: 0.4rem; padding: 0.35rem 0.65rem;
+  font-size: 0.8rem; border-radius: 3px;
+}
+.table-actions button.edit, .table-actions .action-button.edit { background-color: #17a2b8; }
+.table-actions button.edit:hover, .table-actions .action-button.edit:hover { background-color: #117a8b; }
+.table-actions button.delete, .table-actions .action-button.delete { background-color: #dc3545; }
+.table-actions button.delete:hover, .table-actions .action-button.delete:hover { background-color: #c82333; }
+
+.loading-spinner, .no-data-message {
+  text-align: center; padding: 2.5rem;
+  font-style: italic; color: #6c757d; font-size: 1rem;
 }
 
-tr:last-child td {
-  border-bottom: none;
+/* Vue Transition */
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.2s ease; /* Hızlandırıldı */
 }
-
-tr:hover {
-  background-color: #f5f5f5;
-}
-
-.table-actions button {
-  margin-right: 0.5rem;
-  padding: 0.3rem 0.6rem;
-  font-size: 0.85rem;
-  border-radius: 3px;
-}
-
-.table-actions button.edit {
-  background-color: #1890ff;
-  color: white;
-  border: none;
-}
-
-.table-actions button.delete {
-  background-color: #ff4d4f;
-  color: white;
-  border: none;
-}
-
-.loading-spinner,
-.no-data-message {
-  text-align: center;
-  padding: 2rem;
-  font-style: italic;
-  color: #777;
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
 }
 </style>

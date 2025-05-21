@@ -1,0 +1,11 @@
+feat: Implement authentication pages and user management features
+
+- Added LoginPage.vue for user login functionality with error handling and loading state.
+- Created RegisterPage.vue for user registration with validation and success message.
+- Developed HomeView.vue to display API connection status and user information.
+- Implemented NotFoundView.vue for handling 404 errors.
+- Added AdminOfficeList.vue for admin to manage office records with modal for adding/editing offices.
+- Created AdminUserList.vue for admin to manage user accounts with editing and deletion capabilities.
+- Developed CustomerListView.vue for displaying and managing customer records with filtering and pagination.
+- Updated requirements.txt with necessary dependencies for the project.
+- Configured Vite for development server setup.
