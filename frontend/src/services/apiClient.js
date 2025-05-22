@@ -13,15 +13,20 @@ const apiClient = axios.create({
 apiClient.interceptors.request.use(
   (config) => {
     const authStore = useAuthStore();
+    console.log("API Interceptor - Request URL:", config.url); // <<< LOG
+    console.log("API Interceptor - Access Token in Store:", authStore.accessToken); // <<< LOG
     if (authStore.accessToken) {
-      // Refresh token isteği kendi token'ını header'da taşıyacak, bu yüzden normal access token'ı ekleme
       if (config.url === '/auth/refresh') {
-        if (authStore.refreshToken) { // Sadece refreshToken varsa refresh isteği için header ekle
+        if (authStore.refreshToken) {
             config.headers['Authorization'] = `Bearer ${authStore.refreshToken}`;
+            console.log("API Interceptor - Refresh Token ADDED to header"); // <<< LOG
         }
       } else {
         config.headers['Authorization'] = `Bearer ${authStore.accessToken}`;
+        console.log("API Interceptor - Access Token ADDED to header"); // <<< LOG
       }
+    } else {
+        console.warn("API Interceptor - NO TOKEN in store, Authorization header NOT SET for", config.url); // <<< LOG
     }
     return config;
   },
@@ -29,7 +34,6 @@ apiClient.interceptors.request.use(
     return Promise.reject(error);
   }
 );
-
 apiClient.interceptors.response.use(
   (response) => {
     return response;
