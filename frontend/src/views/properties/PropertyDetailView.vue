@@ -105,7 +105,24 @@
             <div class="detail-item"><strong>Arsa Alanı m²:</strong> {{ property.land_area_m2 || '-' }}</div>
           </div>
         </div>
-
+<!-- Mevcut Alan Bilgileri Section'ından SONRA -->
+<div class="card details-section" v-if="property.property_type === 'Arsa' || property.property_type === 'Tarla'">
+  <h4><i class="fas fa-drafting-compass"></i> Emsal ve İnşaat Bilgileri</h4>
+  <div class="details-grid two-columns">
+    <div class="detail-item"><strong>KAKS (Emsal Oranı):</strong> {{ property.kaks_emsal || '-' }}</div>
+    <div class="detail-item"><strong>TAKS Oranı:</strong> {{ property.taks_emsal || '-' }}</div>
+    <div class="detail-item"><strong>Maks. Kat Adedi:</strong> {{ property.max_kat_adedi || '-' }}</div>
+    <div class="detail-item"><strong>Gabari / Maks. Yükseklik:</strong> {{ property.gabari_max_yukseklik_metre ? property.gabari_max_yukseklik_metre + ' m' : '-' }}</div>
+    <div class="detail-item full-width"><strong>İnşaat Nizamı:</strong> {{ property.insaat_nizami || '-' }}</div>
+    <!-- Frontend'de Hesaplanan Alanlar -->
+    <div class="detail-item" v-if="property.land_area_m2 && property.taks_emsal">
+        <strong>Tahmini Taban Oturumu:</strong> {{ (property.land_area_m2 * property.taks_emsal).toFixed(2) }} m²
+    </div>
+    <div class="detail-item" v-if="property.land_area_m2 && property.kaks_emsal">
+        <strong>Tahmini Toplam İnşaat Alanı:</strong> {{ (property.land_area_m2 * property.kaks_emsal).toFixed(2) }} m²
+    </div>
+  </div>
+</div>
         <div v-if="property.details && Object.keys(property.details).length > 0" class="card details-section">
           <h4><i class="fas fa-cogs"></i> Ek Detaylar ({{ property.property_type }})</h4>
           <div class="details-grid two-columns specific-details">
@@ -167,6 +184,9 @@ const loadPropertyData = async () => {
 };
 
 onMounted(() => {
+  loadPropertyData();
+  console.log("PropertyDetailView onMounted - props.id:", props.id); // <<< KONTROL
+  propertyStore.resetStatus();
   loadPropertyData();
 });
 
