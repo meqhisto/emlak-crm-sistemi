@@ -6,12 +6,12 @@ export default defineConfig({
   plugins: [vue()],
   server: {
     port: 5173, // Geliştirme sunucusu portu
-    // proxy: { // Eğer API isteklerini proxy'lemek isterseniz (CORS sorunları için alternatif)
-    //   '/api': {
-    //     target: 'http://localhost:5000', // Backend adresiniz
-    //     changeOrigin: true,
-    //     // rewrite: (path) => path.replace(/^\/api/, '') // Eğer backend /api olmadan bekliyorsa
-    //   }
-    // }
+     proxy: { // Eğer API isteklerini proxy'lemek isterseniz (CORS sorunları için alternatif)
+       '/api': {
+           target: 'http://localhost:5000', // Backend adresiniz
+           changeOrigin: true,
+           // rewrite: (path) => path.replace(/^\/api/, '') // Eğer backend /api olmadan bekliyorsa
+       }
+    }
   }
 })

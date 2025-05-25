@@ -4,10 +4,9 @@ import { useAuthStore } from '../store/modules/auth';
                                 // Gerekirse logout işlemi store içinde yapılmalı.
 
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  }
+  // baseURL: 'http://localhost:5000/api', // ESKİ
+  baseURL: '/api', // YENİ - Vite proxy'si için göreceli yol
+  headers: { /* ... */ }
 });
 
 apiClient.interceptors.request.use(

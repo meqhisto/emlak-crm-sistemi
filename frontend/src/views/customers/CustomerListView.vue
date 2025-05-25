@@ -96,7 +96,7 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue';
 import { useCustomerStore } from '../../store/modules/customerStore';
-import { useAuthStore } from '../../store/modules/auth';
+import { useAuthStore } from '../../store/modules/authStore';
 import apiClient from '../../services/apiClient'; // Danışmanları çekmek için
 
 const customerStore = useCustomerStore();

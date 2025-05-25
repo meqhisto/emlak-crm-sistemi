@@ -111,7 +111,7 @@
 import { ref, reactive, onMounted, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useCustomerStore } from '../../store/modules/customerStore';
-import { useAuthStore } from '../../store/modules/auth';
+import { useAuthStore } from '../../store/modules/authStore';
 import apiClient from '../../services/apiClient';
 
 const route = useRoute();
