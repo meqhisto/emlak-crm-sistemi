@@ -45,3 +45,4 @@ Thumbs.db
 # .env # Frontend'in kendi .env'si için
 # .env.*
 # !.env.example
+.tmp.driveupload/
