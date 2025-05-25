@@ -13,11 +13,18 @@ import CustomerListView from '../views/customers/CustomerListView.vue';
 import CustomerDetailView from '../views/customers/CustomerDetailView.vue';
 import CustomerFormView from '../views/customers/CustomerFormView.vue';
 
-import PropertyListView from '../views/properties/PropertyListView.vue';   // YENİ
-import PropertyDetailView from '../views/properties/PropertyDetailView.vue'; // YENİ
-import PropertyFormView from '../views/properties/PropertyFormView.vue';   // YENİ
+import PropertyDetailView from '../views/properties/PropertyDetailView.vue';
+import PropertyListView from '../views/properties/PropertyListView.vue';
+import PropertyFormView from '../views/properties/PropertyFormView.vue';
 
-import { useAuthStore } from '../store/modules/auth';
+
+import ProjectDetailView from '../views/projects/ProjectDetailView.vue'; // YENİ
+import ProjectListView from '../views/projects/ProjectListView.vue';
+import ProjectFormView from '../views/projects/ProjectFormView.vue';
+import ProjectLayout from '../views/projects/ProjectLayout.vue'; // <<< YENİ IMPORT
+
+
+import { useAuthStore } from '../store/modules/authStore';
 
 const routes = [
   { path: '/', name: 'home', component: HomeView, meta: { requiresAuth: false } },
@@ -38,6 +45,22 @@ const routes = [
       { path: '', redirect: { name: 'admin-users' } } // /admin için varsayılan
     ]
   },
+    // Project Management Routes (YENİ EKLENDİ)
+  // Project Management Routes
+  {
+path: '/projects',
+    component: ProjectLayout, // <<< PARENT ROUTE İÇİN COMPONENT
+    meta: { requiresAuth: true },
+    children: [
+        { path: '', name: 'project-list', component: ProjectListView }, // Default child: /projects
+        { path: 'new', name: 'project-new', component: ProjectFormView, meta: { requiresAuth: true } }, // /projects/new
+        { path: ':id', name: 'project-detail', component: ProjectDetailView, props: true, meta: { requiresAuth: true } }, // /projects/:id
+        { path: ':id/edit', name: 'project-edit', component: ProjectFormView, props: true, meta: { requiresAuth: true } } // /projects/:id/edit
+    ]
+  },
+  // ...
+
+
 
   // Customer Management Routes
   {
@@ -81,27 +104,37 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-  const authStore = useAuthStore();
-  // authStore.checkAuthStatus(); // Bu main.js veya App.vue onMounted'da yapılıyor.
+  const authStore = useAuthStore(); // Yine de store'u import edin
+  console.log("Simplified Guard - Navigating to:", to.name, "Authenticated:", authStore.isAuthenticated);
+  next(); // Her zaman geçişe izin ver
+  console.log("Navigating to:", to.name, "Meta:", to.meta);
+  console.log("User authenticated:", authStore.isAuthenticated, "isAdmin:", authStore.isAdmin, "isBroker:", authStore.isBroker);
 
-  const isAuthenticated = authStore.isAuthenticated;
-  const isAdmin = authStore.isAdmin;
 
-  if (to.meta.requiresAuth && !isAuthenticated) {
+
+
+  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+    console.log("Redirecting to login (requiresAuth failed for", to.name, ")");
     next({ name: 'login', query: { redirect: to.fullPath } });
-  } else if (to.meta.guestOnly && isAuthenticated) {
+  } else if (to.meta.guestOnly && authStore.isAuthenticated) {
+    console.log("Redirecting to home (guestOnly failed for", to.name, ")");
     next({ name: 'home' });
-  } else if (to.meta.requiresAdmin && !isAdmin) {
-    if (isAuthenticated) {
-        // Kullanıcı giriş yapmış ama admin değilse
-        // Uygun bir "Yetkisiz Erişim" sayfasına yönlendirilebilir veya ana sayfaya
-        next({ name: 'home' }); // Şimdilik ana sayfaya
+  } else if (to.meta.requiresAdmin && !authStore.isAdmin) {
+    console.log("Redirecting to home (requiresAdmin failed for", to.name, ")");
+    if (authStore.isAuthenticated) {
+        next({ name: 'home' });
     } else {
-        // Giriş yapmamışsa zaten yukarıdaki requiresAuth bloğu login'e yönlendirecektir.
         next({ name: 'login', query: { redirect: to.fullPath } });
     }
   }
+  // YENİ KONTROL (Broker yetkisi için örnek):
+  // Eğer project-new gibi sayfalar sadece Admin veya Broker tarafından erişilebilir olacaksa:
+  else if ((to.name === 'project-new' || to.name === 'project-edit') && !(isAdmin || isBroker)) { // <<< BU KOŞUL ÖNEMLİ
+     console.log("Redirecting to project-list (project-new/edit auth failed for current user role)");
+     next({ name: 'project-list' }); // Broker veya Admin değilse proje listesine yönlendir
+  }
   else {
+    console.log("Proceeding to route:", to.name);
     next();
   }
 });

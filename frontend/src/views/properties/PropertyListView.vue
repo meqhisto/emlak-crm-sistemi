@@ -2,9 +2,13 @@
   <div class="property-list-view admin-page-container">
     <div class="page-header">
       <h2>Portföy Listesi</h2>
-      <router-link :to="{ name: 'property-new' }" class="action-button add-new-button">
-        <i class="fas fa-plus-circle"></i> Yeni Portföy Ekle
-      </router-link>
+<router-link
+      v-if="canCreateProject"
+      :to="{ name: 'project-new' }"
+      class="action-button add-new-button"
+    >
+      <i class="fas fa-plus-circle"></i> Yeni Proje Ekle
+    </router-link>
     </div>
 
     <!-- Filtreler Paneli -->

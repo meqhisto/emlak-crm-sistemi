@@ -8,19 +8,20 @@
     </div>
 
     <form @submit.prevent="handleSubmit" class="property-form" novalidate>
+      <!-- Genel Form Hataları -->
       <div v-if="formSubmitError || (v$.$dirty && v$.$invalid)" class="error-message form-error-message">
-        <p v-if="formSubmitError">{{ formSubmitError }}</p>
-        <p v-if="v$.$dirty && v$.$invalid">Lütfen formdaki işaretli hataları düzeltin.</p>
+        <p v-if="formSubmitError" v-html="formSubmitError.replace(/\n/g, '<br>')"></p>
+        <p v-if="v$.$dirty && v$.$invalid && !formSubmitError">Lütfen formdaki işaretli hataları düzeltin.</p>
       </div>
       <p v-if="propertyStore.status.successMessage && !formSubmitError" class="success-message">
         {{ propertyStore.status.successMessage }}
       </p>
 
       <!-- TKGM JSON Yükleme -->
-      <div class="form-section">
+      <div class="form-section card">
         <h3><i class="fas fa-file-code"></i> TKGM Parsel Sorgu JSON Verisi Yükle</h3>
         <div class="form-group">
-          <label for="tkgmJsonFile">JSON Dosyası Seçin:</label>
+          <label for="tkgmJsonFile">JSON Dosyası Seçin (Opsiyonel):</label>
           <input type="file" id="tkgmJsonFile" @change="handleTkgmJsonFileChange" accept=".json" class="form-control-file"/>
           <button type="button" @click="parseTkgmJson" :disabled="!tkgmJsonFile || tkgmParseLoading" class="action-button outlined mt-1">
             <i class="fas fa-cogs"></i> {{ tkgmParseLoading ? 'İşleniyor...' : 'Verileri Otomatik Doldur' }}
@@ -29,8 +30,8 @@
         </div>
       </div>
 
-
-      <div class="form-section">
+      <!-- Temel Bilgiler -->
+      <div class="form-section card">
         <h3><i class="fas fa-info-circle"></i> Temel Bilgiler</h3>
         <div class="form-grid two-columns">
           <div class="form-group" :class="{ error: v$.property.title.$errors.length }">
@@ -40,8 +41,7 @@
               <div class="error-msg">{{ error.$message }}</div>
             </div>
           </div>
-          <!-- ... (PropertyFormView.vue'deki diğer Temel Bilgiler alanları aynı kalacak - Vuelidate ile) ... -->
-           <div class="form-group" :class="{ error: v$.property.property_type.$errors.length }">
+          <div class="form-group" :class="{ error: v$.property.property_type.$errors.length }">
             <label for="propertyType">Gayrimenkul Tipi (*):</label>
             <select id="propertyType" v-model="v$.property.property_type.$model" @change="handlePropertyTypeChange">
               <option :value="null" disabled>Seçiniz...</option>
@@ -84,13 +84,13 @@
         </div>
       </div>
 
-      <!-- ... (Fiyat, Konum, Alan Bölümleri - Vuelidate ile aynı kalacak) ... -->
-      <div class="form-section">
+      <!-- Fiyat Bilgileri -->
+      <div class="form-section card">
         <h3><i class="fas fa-dollar-sign"></i> Fiyat Bilgileri</h3>
         <div class="form-grid three-columns">
           <div class="form-group" :class="{ error: v$.property.price.$errors.length }">
             <label for="price">Fiyat:</label>
-            <input type="number" id="price" v-model.number="v$.property.price.$model" @blur="v$.property.price.$touch()" step="any" />
+            <input type="number" id="price" v-model.number="v$.property.price.$model" @blur="v$.property.price.$touch()" step="any" placeholder="Örn: 2500000"/>
             <div class="input-errors" v-for="error of v$.property.price.$errors" :key="error.$uid">
               <div class="error-msg">{{ error.$message }}</div>
             </div>
@@ -106,7 +106,8 @@
         </div>
       </div>
 
-      <div class="form-section">
+      <!-- Konum Bilgileri -->
+      <div class="form-section card">
         <h3><i class="fas fa-map-marked-alt"></i> Konum Bilgileri</h3>
         <div class="form-grid two-columns">
           <div class="form-group"> <label for="addressLine1">Adres Satırı 1:</label> <input type="text" id="addressLine1" v-model="property.address_line1" /> </div>
@@ -121,18 +122,19 @@
           <div class="form-group"> <label for="postalCode">Posta Kodu:</label> <input type="text" id="postalCode" v-model="property.postal_code" /> </div>
           <div class="form-group" :class="{ error: v$.property.latitude.$errors.length }">
             <label for="latitude">Enlem (Latitude):</label>
-            <input type="number" id="latitude" v-model.number="v$.property.latitude.$model" @blur="v$.property.latitude.$touch()" step="any" />
+            <input type="number" id="latitude" v-model.number="v$.property.latitude.$model" @blur="v$.property.latitude.$touch()" step="any" placeholder="Örn: 40.14705"/>
             <div class="input-errors" v-for="error of v$.property.latitude.$errors" :key="error.$uid"> <div class="error-msg">{{ error.$message }}</div> </div>
           </div>
           <div class="form-group" :class="{ error: v$.property.longitude.$errors.length }">
             <label for="longitude">Boylam (Longitude):</label>
-            <input type="number" id="longitude" v-model.number="v$.property.longitude.$model" @blur="v$.property.longitude.$touch()" step="any" />
+            <input type="number" id="longitude" v-model.number="v$.property.longitude.$model" @blur="v$.property.longitude.$touch()" step="any" placeholder="Örn: 26.4456"/>
             <div class="input-errors" v-for="error of v$.property.longitude.$errors" :key="error.$uid"> <div class="error-msg">{{ error.$message }}</div> </div>
           </div>
         </div>
       </div>
 
-      <div class="form-section">
+      <!-- Alan Bilgileri -->
+      <div class="form-section card">
         <h3> <i class="fas fa-ruler-combined"></i> Alan Bilgileri</h3>
         <div class="form-grid three-columns">
           <div class="form-group" :class="{ error: v$.property.area_m2_gross.$errors.length }">
@@ -152,21 +154,57 @@
           </div>
         </div>
       </div>
-
-
+<!-- Mevcut Alan Bilgileri Section'ından SONRA -->
+<div class="form-section card" v-if="property.property_type === 'Arsa' || property.property_type === 'Tarla'">
+  <h3><i class="fas fa-drafting-compass"></i> Emsal ve İnşaat Bilgileri</h3>
+  <div class="form-grid three-columns">
+    <div class="form-group" :class="{ error: v$.property.land_area_m2?.$errors.length }"> <!-- land_area_m2 artık burada daha anlamlı -->
+      <label for="formLandArea">Arsa Alanı (m²)</label>
+      <input type="number" id="formLandArea" v-model.number="v$.property.land_area_m2.$model" @blur="v$.property.land_area_m2?.$touch()" @input="calculateConstructionAreas" />
+      <div class="input-errors" v-for="error of v$.property.land_area_m2.$errors" :key="error.$uid"><div class="error-msg">{{ error.$message }}</div></div>
+    </div>
+    <div class="form-group" :class="{ error: v$.property.kaks_emsal?.$errors.length }">
+      <label for="kaksEmsal">KAKS (Emsal Oranı):</label>
+      <input type="number" id="kaksEmsal" v-model.number="v$.property.kaks_emsal.$model" @blur="v$.property.kaks_emsal?.$touch()" step="0.01" placeholder="Örn: 1.5" @input="calculateConstructionAreas"/>
+      <div class="input-errors" v-for="error of v$.property.kaks_emsal.$errors" :key="error.$uid"><div class="error-msg">{{ error.$message }}</div></div>
+    </div>
+    <div class="form-group" :class="{ error: v$.property.taks_emsal?.$errors.length }">
+      <label for="taksEmsal">TAKS Oranı:</label>
+      <input type="number" id="taksEmsal" v-model.number="v$.property.taks_emsal.$model" @blur="v$.property.taks_emsal?.$touch()" step="0.01" placeholder="Örn: 0.3" @input="calculateConstructionAreas"/>
+      <div class="input-errors" v-for="error of v$.property.taks_emsal.$errors" :key="error.$uid"><div class="error-msg">{{ error.$message }}</div></div>
+    </div>
+    <div class="form-group">
+      <label for="maxKatAdedi">Maks. Kat Adedi:</label>
+      <input type="number" id="maxKatAdedi" v-model.number="property.max_kat_adedi" />
+    </div>
+    <div class="form-group">
+      <label for="gabari">Gabari / Maks. Yükseklik (m):</label>
+      <input type="number" id="gabari" v-model.number="property.gabari_max_yukseklik_metre" step="0.1" />
+    </div>
+    <div class="form-group">
+      <label for="insaatNizami">İnşaat Nizamı:</label>
+      <input type="text" id="insaatNizami" v-model="property.insaat_nizami" placeholder="Örn: Ayrık, Bitişik"/>
+    </div>
+  </div>
+  <!-- Hesaplanan Alanlar (Sadece Gösterim) -->
+  <div class="calculated-areas mt-1" v-if="property.land_area_m2 > 0">
+      <p><strong>Tahmini Taban Oturumu:</strong> {{ calculatedBaseArea > 0 ? calculatedBaseArea.toFixed(2) + ' m²' : '-' }}</p>
+      <p><strong>Tahmini Toplam İnşaat Alanı:</strong> {{ calculatedTotalConstructionArea > 0 ? calculatedTotalConstructionArea.toFixed(2) + ' m²' : '-' }}</p>
+  </div>
+</div>
       <!-- Türe Özel Detaylar -->
-      <div class="form-section">
+      <div class="form-section card">
         <h3><i class="fas fa-cogs"></i> Ek Detaylar ({{ property.property_type || 'Tip Seçilmedi' }})</h3>
         <div v-if="property.property_type === 'Konut'" class="form-grid two-columns">
-          <div class="form-group" :class="{ error: v$.property.details.oda_sayisi?.$errors.length }"> <label for="detailOdaSayisi">Oda Sayısı (*):</label> <input type="text" id="detailOdaSayisi" v-model="v$.property.details.oda_sayisi.$model" @blur="v$.property.details.oda_sayisi.$touch()"/> <div class="input-errors" v-for="error of v$.property.details.oda_sayisi.$errors" :key="error.$uid"><div class="error-msg">{{ error.$message }}</div></div> </div>
-          <div class="form-group" :class="{ error: v$.property.details.bina_yasi?.$errors.length }"> <label for="detailBinaYasi">Bina Yaşı:</label> <input type="number" id="detailBinaYasi" v-model.number="v$.property.details.bina_yasi.$model" @blur="v$.property.details.bina_yasi.$touch()"/> <div class="input-errors" v-for="error of v$.property.details.bina_yasi.$errors" :key="error.$uid"><div class="error-msg">{{ error.$message }}</div></div> </div>
+          <div class="form-group" :class="{ error: v$.property.details.oda_sayisi?.$errors.length }"> <label for="detailOdaSayisi">Oda Sayısı (*):</label> <input type="text" id="detailOdaSayisi" v-model="v$.property.details.oda_sayisi.$model" @blur="v$.property.details.oda_sayisi?.$touch()"/> <div class="input-errors" v-for="error of v$.property.details.oda_sayisi.$errors" :key="error.$uid"><div class="error-msg">{{ error.$message }}</div></div> </div>
+          <div class="form-group" :class="{ error: v$.property.details.bina_yasi?.$errors.length }"> <label for="detailBinaYasi">Bina Yaşı:</label> <input type="number" id="detailBinaYasi" v-model.number="v$.property.details.bina_yasi.$model" @blur="v$.property.details.bina_yasi?.$touch()"/> <div class="input-errors" v-for="error of v$.property.details.bina_yasi.$errors" :key="error.$uid"><div class="error-msg">{{ error.$message }}</div></div> </div>
           <div class="form-group"> <label for="detailKatNumarasi">Bulunduğu Kat:</label> <input type="number" id="detailKatNumarasi" v-model.number="property.details.kat_numarasi" /> </div>
           <div class="form-group"> <label for="detailBanyoSayisi">Banyo Sayısı:</label> <input type="number" id="detailBanyoSayisi" v-model.number="property.details.banyo_sayisi" /> </div>
           <div class="form-group form-check"> <input type="checkbox" id="detailBalkon" v-model="property.details.balkon_var_mi" /> <label for="detailBalkon" class="form-check-label">Balkon Var mı?</label> </div>
           <div class="form-group form-check"> <input type="checkbox" id="detailEsyali" v-model="property.details.esyali_mi" /> <label for="detailEsyali" class="form-check-label">Eşyalı mı?</label> </div>
         </div>
         <div v-else-if="property.property_type === 'Arsa' || property.property_type === 'Tarla'" class="form-grid two-columns">
-          <div class="form-group" :class="{ error: v$.property.details.imar_durumu?.$errors.length }"> <label for="detailImarDurumu">İmar Durumu:</label> <input type="text" id="detailImarDurumu" v-model="v$.property.details.imar_durumu.$model" @blur="v$.property.details.imar_durumu.$touch()"/> <div class="input-errors" v-for="error of v$.property.details.imar_durumu.$errors" :key="error.$uid"><div class="error-msg">{{ error.$message }}</div></div> </div>
+          <div class="form-group" :class="{ error: v$.property.details.imar_durumu?.$errors.length }"> <label for="detailImarDurumu">İmar Durumu:</label> <input type="text" id="detailImarDurumu" v-model="v$.property.details.imar_durumu.$model" @blur="v$.property.details.imar_durumu?.$touch()"/> <div class="input-errors" v-for="error of v$.property.details.imar_durumu.$errors" :key="error.$uid"><div class="error-msg">{{ error.$message }}</div></div> </div>
           <div class="form-group"> <label for="detailAdaNo">Ada No:</label> <input type="text" id="detailAdaNo" v-model="property.details.ada_no" /> </div>
           <div class="form-group"> <label for="detailParselNo">Parsel No:</label> <input type="text" id="detailParselNo" v-model="property.details.parsel_no" /> </div>
           <div class="form-group"> <label for="detailTapuDurumu">Tapu Durumu:</label> <input type="text" id="detailTapuDurumu" v-model="property.details.tapu_durumu" /> </div>
@@ -186,35 +224,38 @@
       </div>
 
       <!-- Fotoğraf Yükleme -->
-      <div class="form-section">
+      <div class="form-section card">
         <h3><i class="fas fa-images"></i> Fotoğraflar</h3>
         <div class="form-group">
-          <label for="photos">Fotoğraf Yükle (Birden fazla seçebilirsiniz):</label>
-          <input type="file" id="photos" @change="handlePhotoFilesChange" multiple accept="image/*" class="form-control-file"/>
+          <label for="photos">Yeni Fotoğraf Yükle (Max 5MB, PNG, JPG, GIF, WEBP):</label>
+          <input type="file" id="photos" @change="handlePhotoFilesChange" multiple accept="image/png, image/jpeg, image/gif, image/webp" class="form-control-file"/>
         </div>
         <div v-if="photoPreviews.length > 0" class="photo-previews-grid">
-          <div v-for="(preview, index) in photoPreviews" :key="index" class="photo-preview-item">
+          <div v-for="(preview, index) in photoPreviews" :key="`preview-${index}`" class="photo-preview-item">
             <img :src="preview.url" :alt="preview.file.name" />
             <input type="text" v-model="preview.caption" placeholder="Alt yazı (opsiyonel)" class="caption-input"/>
             <div class="form-check">
-              <input type="radio" :id="'isPrimary' + index" name="isPrimaryPhoto" :value="index" v-model="primaryPhotoIndex" />
-              <label :for="'isPrimary' + index" class="form-check-label">Ana Fotoğraf</label>
+              <input type="radio" :id="'isPrimaryPreview' + index" name="isPrimaryPhotoCandidate" :value="index" v-model="primaryPhotoCandidateIndex" />
+              <label :for="'isPrimaryPreview' + index" class="form-check-label">Ana Fotoğraf</label>
             </div>
             <button type="button" @click="removePhotoPreview(index)" class="action-button delete small" title="Bu önizlemeyi kaldır">
               <i class="fas fa-times"></i>
             </button>
           </div>
         </div>
-        <!-- Mevcut Fotoğraflar (Düzenleme Modunda) -->
-        <div v-if="isEditMode && existingPhotos.length > 0" class="existing-files-grid">
+        <div v-if="isEditMode && existingPhotos.length > 0" class="existing-files-grid photos">
           <h4>Mevcut Fotoğraflar:</h4>
-          <div v-for="photo in existingPhotos" :key="photo.id" class="existing-file-item">
-            <img :src="getMediaUrl(photo.url)" alt="Mevcut fotoğraf" />
-            <span>{{ photo.original_file_name }} ({{ photo.is_primary ? 'Ana' : '' }})</span>
-            <button type="button" @click="deleteExistingPhoto(photo.id)" class="action-button delete small" :disabled="photoDeleteLoading[photo.id]">
+          <div v-for="photo in existingPhotos" :key="photo.id" class="existing-file-item photo">
+            <img :src="getMediaUrl(photo.url)" :alt="photo.original_file_name || 'Mevcut fotoğraf'" />
+            <p class="filename" :title="photo.original_file_name">{{ photo.original_file_name }}</p>
+            <p v-if="photo.caption" class="caption-text"><em>{{photo.caption}}</em></p>
+            <div class="form-check">
+              <input type="radio" :id="'isPrimaryExisting' + photo.id" name="isPrimaryPhotoExisting" :value="photo.id" v-model="primaryExistingPhotoId" @change="setExistingAsPrimary(photo.id)"/>
+              <label :for="'isPrimaryExisting' + photo.id" class="form-check-label">Ana Fotoğraf</label>
+            </div>
+            <button type="button" @click="deleteExistingPhoto(photo.id)" class="action-button delete small" :disabled="photoDeleteLoading[photo.id]" title="Bu fotoğrafı sil">
               <i class="fas fa-trash-alt"></i> {{ photoDeleteLoading[photo.id] ? 'Siliniyor...' : ''}}
             </button>
-            <!-- TODO: Ana fotoğraf yapma butonu -->
           </div>
         </div>
         <div v-if="photoUploadLoading" class="loading-spinner small-spinner"><i class="fas fa-spinner fa-spin"></i> Fotoğraflar yükleniyor...</div>
@@ -222,14 +263,15 @@
       </div>
 
       <!-- Belge Yükleme -->
-      <div class="form-section">
+      <div class="form-section card">
         <h3><i class="fas fa-folder-open"></i> Belgeler</h3>
         <div class="form-group">
-          <label for="documents">Belge Yükle (Birden fazla seçebilirsiniz):</label>
+          <label for="documents">Yeni Belge Yükle (Max 10MB):</label>
           <input type="file" id="documents" @change="handleDocumentFilesChange" multiple class="form-control-file"/>
         </div>
          <div v-if="documentPreviews.length > 0" class="document-previews-list">
-          <div v-for="(preview, index) in documentPreviews" :key="index" class="document-preview-item">
+          <h4>Yüklenecek Belgeler:</h4>
+          <div v-for="(preview, index) in documentPreviews" :key="`doc-preview-${index}`" class="document-preview-item">
             <span><i class="fas fa-file-alt"></i> {{ preview.file.name }} ({{ (preview.file.size / 1024).toFixed(1) }} KB)</span>
             <input type="text" v-model="preview.document_type" placeholder="Belge Tipi (örn: Tapu)" class="caption-input small-input"/>
             <input type="text" v-model="preview.description" placeholder="Açıklama (opsiyonel)" class="caption-input"/>
@@ -238,15 +280,14 @@
             </button>
           </div>
         </div>
-        <!-- Mevcut Belgeler (Düzenleme Modunda) -->
-        <div v-if="isEditMode && existingDocuments.length > 0" class="existing-files-grid">
+        <div v-if="isEditMode && existingDocuments.length > 0" class="existing-files-grid documents">
           <h4>Mevcut Belgeler:</h4>
-          <div v-for="doc in existingDocuments" :key="doc.id" class="existing-file-item">
-            <a :href="getMediaUrl(doc.url)" target="_blank" class="document-link">
-                <i class="fas fa-file-alt"></i> {{ doc.original_file_name }}
+          <div v-for="doc in existingDocuments" :key="doc.id" class="existing-file-item document">
+            <a :href="getMediaUrl(doc.url)" target="_blank" class="document-link" :title="doc.description || doc.original_file_name">
+                <i :class="getDocumentIcon(doc.mime_type || doc.original_file_name)"></i> {{ doc.original_file_name }}
             </a>
-            <span>({{ doc.document_type || 'Belirsiz' }})</span>
-            <button type="button" @click="deleteExistingDocument(doc.id)" class="action-button delete small" :disabled="docDeleteLoading[doc.id]">
+            <span class="doc-type">({{ doc.document_type || 'Belirsiz' }})</span>
+            <button type="button" @click="deleteExistingDocument(doc.id)" class="action-button delete small" :disabled="docDeleteLoading[doc.id]" title="Bu belgeyi sil">
               <i class="fas fa-trash-alt"></i> {{ docDeleteLoading[doc.id] ? 'Siliniyor...' : ''}}
             </button>
           </div>
@@ -255,8 +296,8 @@
         <p v-if="documentUploadError" class="error-message small-error">{{ documentUploadError }}</p>
       </div>
 
-
-      <div class="form-section">
+      <!-- Yayın Bilgileri ve Atamalar -->
+      <div class="form-section card">
         <h3><i class="fas fa-cogs"></i> Yayın Bilgileri ve Atamalar</h3>
         <div class="form-grid two-columns">
           <div class="form-group">
@@ -297,7 +338,6 @@
     </form>
   </div>
 </template>
-
 <script setup>
 import { ref, reactive, onMounted, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -308,7 +348,13 @@ import apiClient from '../../services/apiClient';
 import { useVuelidate } from '@vuelidate/core';
 import { required, minValue, maxValue, maxLength, numeric, helpers } from '@vuelidate/validators';
 
-const props = defineProps({ id: { type: String, required: false } });
+const props = defineProps({
+  id: { // route'dan gelen :id parametresi (düzenleme modu için)
+    type: String,
+    required: false, // Yeni ekleme modunda olmayacak
+  },
+});
+
 const route = useRoute();
 const router = useRouter();
 const propertyStore = usePropertyStore();
@@ -316,20 +362,47 @@ const authStore = useAuthStore();
 
 const propertyId = ref(props.id || null);
 const isEditMode = computed(() => !!propertyId.value);
-const formSubmitError = ref(null);
+const formSubmitError = ref(null); // API dışı genel form hataları için
 
-const initialPropertyData = { /* ... (önceki gibi) ... */
-  title: '', description: '', property_type: null, status: 'Aktif', listing_type: 'Satılık',
-  price: null, currency: 'TRY', address_line1: '', address_line2: '', city: '', district: '',
-  neighborhood: '', postal_code: '', country: 'Türkiye', latitude: null, longitude: null,
-  area_m2_gross: null, area_m2_net: null, land_area_m2: null,
-  details: {}, expiry_date: null, assigned_consultant_id: null, office_id: null, is_active: true,
+const initialPropertyData = {
+  title: '',
+  description: '',
+  property_type: null,
+  status: 'Aktif', // Varsayılan durum
+  listing_type: 'Satılık', // Varsayılan ilan tipi
+  price: null,
+  currency: 'TRY',
+  address_line1: '',
+  address_line2: '',
+  city: '',
+  district: '',
+  neighborhood: '',
+  postal_code: '',
+  country: 'Türkiye',
+  latitude: null,
+  longitude: null,
+  area_m2_gross: null,
+  area_m2_net: null,
+  land_area_m2: null,
+  kaks_emsal: null,
+  taks_emsal: null,
+  gabari_max_yukseklik_metre: null,
+  max_kat_adedi: null,
+  insaat_nizami: '',
+  details: {}, // Başlangıçta boş bir obje
+  expiry_date: null, // ISO string olarak saklanacak
+  assigned_consultant_id: null,
+  office_id: null,
+  is_active: true, // Kaydın sistemdeki aktifliği
 };
 const property = reactive({ ...initialPropertyData });
-const expiry_date_input = ref(''); // YYYY-MM-DD formatı için
+
+// expiry_date için ayrı bir ref (HTML date input'u YYYY-MM-DD formatında değer alır)
+const expiry_date_input = ref('');
+
 const availableConsultants = ref([]);
 const availableOffices = ref([]);
-const genericDetailsString = ref('');
+const genericDetailsString = ref(''); // "Diğer" tipi için veya JSON olmayan girişler için
 
 // Dosya Yükleme State'leri
 const tkgmJsonFile = ref(null);
@@ -337,8 +410,9 @@ const tkgmParseLoading = ref(false);
 const tkgmParseError = ref(null);
 
 const photoFilesToUpload = ref([]); // Yüklenecek fotoğrafların File nesneleri
-const photoPreviews = ref([]); // Fotoğraf önizlemeleri (url, file, caption, is_primary)
-const primaryPhotoIndex = ref(0); // Seçilen ana fotoğrafın indeksi
+const photoPreviews = ref([]); // Fotoğraf önizlemeleri (url, file, caption)
+const primaryPhotoCandidateIndex = ref(null); // Yüklenecekler arasından ana fotoğrafın index'i
+const primaryExistingPhotoId = ref(null); // Mevcut fotolardan ana olanın ID'si
 const existingPhotos = ref([]); // Düzenleme modunda mevcut fotoğraflar
 const photoUploadLoading = ref(false);
 const photoUploadError = ref(null);
@@ -352,86 +426,140 @@ const documentUploadError = ref(null);
 const docDeleteLoading = reactive({});
 
 const isSubmittingOverall = computed(() =>
-    propertyStore.status.isSubmitting || photoUploadLoading.value || documentUploadLoading.value
+    propertyStore.status.isSubmitting || // Ana form için store'un kendi submitting'i
+    photoUploadLoading.value ||
+    documentUploadLoading.value ||
+    Object.values(photoDeleteLoading).some(loading => loading) ||
+    Object.values(docDeleteLoading).some(loading => loading)
 );
 
 
 // Vuelidate Kuralları
-const rules = computed(() => { /* ... (önceki gibi, daha detaylı) ... */
-  const R_details = {};
+const rules = computed(() => {
+  const R_details = {}; // property.details için kurallar (dinamik)
   if (property.property_type === 'Konut') {
     R_details.oda_sayisi = { required: helpers.withMessage('Oda sayısı konut için zorunludur.', required), maxLength: maxLength(20) };
-    R_details.bina_yasi = { numeric: helpers.withMessage('Sayısal değer girin.', numeric), minValue: minValue(0), maxValue: maxValue(200) };
+    R_details.bina_yasi = { numeric: helpers.withMessage('Sayısal değer girin.', numeric), minValue: helpers.withMessage('Bina yaşı pozitif olmalı.', minValue(0)), maxValue: helpers.withMessage('Bina yaşı çok yüksek.', maxValue(200)) };
   } else if (property.property_type === 'Arsa' || property.property_type === 'Tarla') {
     R_details.imar_durumu = { maxLength: maxLength(100) };
   }
-  // Diğer tipler için de kurallar eklenebilir.
+  // Diğer tipler için de `details` altındaki alanlara kurallar eklenebilir.
 
   return {
     property: {
-      title: { required: helpers.withMessage('İlan başlığı zorunludur.', required), maxLength: helpers.withMessage('En fazla 255 karakter.', maxLength(255)) },
+      title: { required: helpers.withMessage('İlan başlığı zorunludur.', required), maxLength: helpers.withMessage('Başlık en fazla 255 karakter olabilir.', maxLength(255)) },
       property_type: { required: helpers.withMessage('Gayrimenkul tipi seçimi zorunludur.', required) },
       listing_type: { required: helpers.withMessage('İlan tipi seçimi zorunludur.', required) },
       status: { required: helpers.withMessage('Durum seçimi zorunludur.', required) },
-      description: { maxLength: helpers.withMessage('En fazla 2000 karakter.', maxLength(2000))},
+      description: { maxLength: helpers.withMessage('Açıklama en fazla 2000 karakter olabilir.', maxLength(2000))},
       price: { numeric: helpers.withMessage('Geçerli bir fiyat girin.', numeric), minValue: helpers.withMessage('Fiyat negatif olamaz.', minValue(0)) },
-      city: { maxLength: maxLength(100) },
-      latitude: { numeric, minValue: minValue(-90), maxValue: maxValue(90) },
-      longitude: { numeric, minValue: minValue(-180), maxValue: maxValue(180) },
-      area_m2_gross: { numeric, minValue: helpers.withMessage('Pozitif değer girin.', minValue(0)) },
-      area_m2_net: { numeric, minValue: helpers.withMessage('Pozitif değer girin.', minValue(0)), 
-        maxValue: helpers.withMessage('Net alan brüt alandan büyük olamaz.', maxValue(property.area_m2_gross || Number.MAX_SAFE_INTEGER))
+      city: { maxLength: helpers.withMessage('Şehir en fazla 100 karakter olabilir.', maxLength(100)) },
+      latitude: { numeric, minValue: helpers.withMessage('Geçerli bir enlem girin (-90 ile 90 arası).', minValue(-90)), maxValue: helpers.withMessage('Geçerli bir enlem girin (-90 ile 90 arası).', maxValue(90)) },
+      longitude: { numeric, minValue: helpers.withMessage('Geçerli bir boylam girin (-180 ile 180 arası).', minValue(-180)), maxValue: helpers.withMessage('Geçerli bir boylam girin (-180 ile 180 arası).', maxValue(180)) },
+      area_m2_gross: { numeric: helpers.withMessage('Sayısal değer girin.', numeric), minValue: helpers.withMessage('Alan pozitif olmalı.', minValue(0)) },
+      area_m2_net: {
+        numeric: helpers.withMessage('Sayısal değer girin.', numeric),
+        minValue: helpers.withMessage('Alan pozitif olmalı.', minValue(0)),
+        // maxValue: helpers.withMessage('Net alan brüt alandan büyük olamaz.', maxValue(property.area_m2_gross || Number.MAX_SAFE_INTEGER))
+        // Yukarıdaki maxValue, property.area_m2_gross null ise sorun çıkarabilir. Daha iyi bir kontrol:
+        customNetAreaValidation: helpers.withMessage('Net alan brüt alandan büyük olamaz.', (value) => {
+            if (property.area_m2_gross === null || property.area_m2_gross === undefined || value === null || value === undefined) return true; // Eğer brüt alan girilmemişse veya net alan girilmemişse bu validasyonu atla
+            return parseFloat(value) <= parseFloat(property.area_m2_gross);
+        })
       },
-      land_area_m2: { numeric, minValue: helpers.withMessage('Pozitif değer girin.', minValue(0)) },
+      land_area_m2: { numeric: helpers.withMessage('Sayısal değer girin.', numeric), minValue: helpers.withMessage('Alan pozitif olmalı.', minValue(0)) },
+      kaks_emsal: { numeric, minValue: minValue(0), maxValue: maxValue(10) },
+      taks_emsal: { numeric, minValue: minValue(0), maxValue: maxValue(1) },
+      max_kat_adedi: { numeric, minValue: minValue(0), maxValue: maxValue(100) },
+      gabari_max_yukseklik_metre: { numeric, minValue: minValue(0), maxValue: maxValue(300) },
       details: R_details,
     }
   };
 });
+
+// Vuelidate instance
 const v$ = useVuelidate(rules, { property }, { $autoDirty: true });
+
 
 // --- Watchers ---
 watch(expiry_date_input, (newVal) => {
     property.expiry_date = newVal ? new Date(newVal).toISOString() : null;
 });
 watch(() => property.expiry_date, (newVal) => {
-    if (newVal) { expiry_date_input.value = new Date(newVal).toISOString().split('T')[0]; }
-    else { expiry_date_input.value = ''; }
+    if (newVal) {
+        try {
+            expiry_date_input.value = new Date(newVal).toISOString().split('T')[0];
+        } catch (e) {
+            expiry_date_input.value = ''; // Hatalı tarih formatı gelirse inputu boşalt
+        }
+    } else {
+        expiry_date_input.value = '';
+    }
 }, { immediate: true });
 
 watch(() => props.id, (newId) => {
     propertyId.value = newId || null;
-    loadPropertyForEdit();
+    loadInitialFormState();
 });
 
 // --- Computed Properties ---
 const canAssignConsultant = computed(() => authStore.isAdmin || authStore.isBroker);
 
+const calculatedBaseArea = computed(() => {
+  const landArea = parseFloat(property.land_area_m2);
+  const taks = parseFloat(property.taks_emsal);
+  if (!isNaN(landArea) && landArea > 0 && !isNaN(taks) && taks > 0) {
+    return landArea * taks;
+  }
+  return 0;
+});
+
+const calculatedTotalConstructionArea = computed(() => {
+  const landArea = parseFloat(property.land_area_m2);
+  const kaks = parseFloat(property.kaks_emsal);
+  if (!isNaN(landArea) && landArea > 0 && !isNaN(kaks) && kaks > 0) {
+    return landArea * kaks;
+  }
+  return 0;
+});
+
 // --- Methods ---
-const fetchDropdownOptions = async () => { /* ... (önceki gibi) ... */
+const fetchDropdownOptions = async () => {
   await propertyStore.fetchPropertyTypes();
   await propertyStore.fetchPropertyStatuses();
   if (canAssignConsultant.value) {
     try {
-      const usersPromise = apiClient.get('/users', { params: { per_page: 500 } });
+      const usersPromise = apiClient.get('/users', { params: { per_page: 500 } }); // Rol filtresi backend'de olmalı
       const officesPromise = apiClient.get('/offices', { params: { per_page: 500 } });
       const [usersResponse, officesResponse] = await Promise.all([usersPromise, officesPromise]);
       availableConsultants.value = usersResponse.data.users.filter(u => u.role === 'danisman' || u.role === 'broker');
       availableOffices.value = officesResponse.data.offices;
     } catch (error) {
       console.error("Danışman/Ofis seçenekleri yüklenirken hata:", error);
-      formSubmitError.value = "Danışman/Ofis listesi yüklenemedi.";
+      formSubmitError.value = "Form için gerekli bazı veriler (Danışman/Ofis listesi) yüklenemedi.";
     }
   }
 };
 
-const loadPropertyForEdit = async () => { /* ... (önceki gibi, v$.$reset() eklendi) ... */
-  v$.value.$reset();
-  formSubmitError.value = null;
-  propertyStore.resetStatus();
-  photoPreviews.value = []; photoFilesToUpload.value = []; existingPhotos.value = []; photoUploadError.value = null;
-  documentPreviews.value = []; documentFilesToUpload.value = []; existingDocuments.value = []; documentUploadError.value = null;
+const resetFormAndState = () => {
+    Object.assign(property, JSON.parse(JSON.stringify(initialPropertyData))); // Derin kopyalama ile sıfırlama
+    property.details = {}; // details'ı ayrıca boş obje yap
+    genericDetailsString.value = '';
+    expiry_date_input.value = ''; // Bu, property.expiry_date watch'ını tetikleyerek onu da null yapar.
+    v$.value.$reset();
+    formSubmitError.value = null;
+    propertyStore.resetStatus();
 
+    tkgmJsonFile.value = null; tkgmParseLoading.value = false; tkgmParseError.value = null;
+    photoFilesToUpload.value = []; photoPreviews.value = []; primaryPhotoCandidateIndex.value = null;
+    existingPhotos.value = []; photoUploadError.value = null; Object.keys(photoDeleteLoading).forEach(k => delete photoDeleteLoading[k]);
+    documentFilesToUpload.value = []; documentPreviews.value = [];
+    existingDocuments.value = []; documentUploadError.value = null; Object.keys(docDeleteLoading).forEach(k => delete docDeleteLoading[k]);
+    primaryExistingPhotoId.value = null;
+};
 
+const loadInitialFormState = async () => {
+  resetFormAndState();
   if (isEditMode.value) {
     const fetchedProperty = await propertyStore.fetchPropertyById(propertyId.value);
     if (fetchedProperty) {
@@ -441,21 +569,21 @@ const loadPropertyForEdit = async () => { /* ... (önceki gibi, v$.$reset() ekle
           if (fetchedProperty.property_type === 'Diğer') {
             genericDetailsString.value = (typeof fetchedProperty.details === 'object') ? JSON.stringify(fetchedProperty.details, null, 2) : (fetchedProperty.details || '');
           }
-        } else if (key === 'price' && fetchedProperty[key] !== null) {
+        } else if (key === 'price' && fetchedProperty[key] !== null && fetchedProperty[key] !== undefined) {
             property[key] = parseFloat(fetchedProperty[key]);
+        } else if (key === 'expiry_date') { // expiry_date watch'ı tetikleyecek
+            property[key] = fetchedProperty[key];
         } else if (fetchedProperty[key] !== undefined) {
           property[key] = fetchedProperty[key];
         }
       });
-      // Mevcut fotoğraf ve belgeleri yükle
-      fetchExistingMedia();
+      await fetchExistingMedia();
+      v$.value.$reset(); // Veri yüklendikten sonra validasyon durumunu sıfırla
     } else {
-      router.push({ name: 'property-list' });
+      formSubmitError.value = "Portföy bulunamadı veya yüklenirken bir hata oluştu. Listeye yönlendiriliyorsunuz.";
+      // setTimeout(() => router.push({ name: 'property-list' }), 3000);
     }
-  } else { // Yeni ekleme modu
-    Object.assign(property, initialPropertyData);
-    property.details = {};
-    genericDetailsString.value = '';
+  } else {
     if (authStore.currentUser && authStore.currentUser.role === 'danisman') {
       property.assigned_consultant_id = authStore.currentUser.id;
       if (authStore.currentUser.office_id) {
@@ -467,6 +595,7 @@ const loadPropertyForEdit = async () => { /* ... (önceki gibi, v$.$reset() ekle
 
 const fetchExistingMedia = async () => {
     if (!propertyId.value) return;
+    // propertyStore.status.isLoading = true; // Bu ana form loading'ini etkileyebilir, ayrı loading state'ler daha iyi
     try {
         const [photosRes, docsRes] = await Promise.all([
             apiClient.get(`/properties/${propertyId.value}/photos`),
@@ -474,144 +603,152 @@ const fetchExistingMedia = async () => {
         ]);
         existingPhotos.value = photosRes.data || [];
         const primary = existingPhotos.value.find(p => p.is_primary);
-        if (primary) {
-            // Ana fotoğrafı önizlemelerde seçili hale getirme mantığı eklenebilir (gerekirse)
-        }
+        primaryExistingPhotoId.value = primary ? primary.id : null;
         existingDocuments.value = docsRes.data || [];
     } catch (error) {
         console.error("Mevcut medya yüklenirken hata:", error);
-        formSubmitError.value = "Mevcut fotoğraf/belgeler yüklenemedi.";
+        formSubmitError.value = (formSubmitError.value ? formSubmitError.value + "\n" : "") + "Mevcut fotoğraf/belgeler yüklenemedi.";
+    } finally {
+        // propertyStore.status.isLoading = false;
     }
 };
 
-
-const handlePropertyTypeChange = () => { /* ... (önceki gibi) ... */
+const handlePropertyTypeChange = () => {
     property.details = {};
     genericDetailsString.value = '';
-    v$.value.property.details.$reset();
+    // İlgili details alanları için Vuelidate'i sıfırla (eğer $each veya dinamik kurallar varsa)
+    if (v$.value.property.details) {
+        v$.value.property.details.$reset();
+    }
 };
 
 onMounted(async () => {
-  await fetchDropdownOptions();
-  await loadPropertyForEdit();
+  await fetchDropdownOptions(); // Önce dropdown'lar
+  await loadInitialFormState(); // Sonra form verisi
 });
 
-const getMediaUrl = (relativePath) => { // Backend'den gelen relative path'i tam URL'ye çevir
-    // relativePath örnek: /uploads/properties/<prop_id>/photos/<filename>
-    // apiClient.defaults.baseURL örnek: http://localhost:5000/api
-    // Bizim dosya sunma endpoint'imiz /api/properties/serve-file/...
-    if (!relativePath) return '';
-    // Modeldeki to_dict url'i /uploads/... şeklinde, serve_property_file ise /api/properties/serve-file/... bekliyor.
-    // Bu URL'ler tutarlı olmalı. Şimdilik PropertyPhoto/Document to_dict() metodundaki URL'in
-    // /api/properties/serve-file/properties/... şeklinde olduğunu varsayalım.
-    // Ya da apiClient.defaults.baseURL'den /api kısmını çıkarıp birleştirelim.
-    // Örnek: return `http://localhost:5000${relativePath}`;
-    // VEYA apiClient ile çağırmak yerine doğrudan src'ye verilebilir.
-    // Şimdilik, to_dict()'in tam URL verdiğini varsayalım veya base ile birleştirelim.
-
-    // Eğer to_dict() /api/properties/serve-file/... gibi bir URL üretiyorsa:
-    // return `${apiClient.defaults.baseURL.replace('/api','')}${relativePath}`;
-
-    // Eğer to_dict() sadece dosya yolunu veriyorsa (örn: properties/uuid/photos/img.jpg)
-    // ve serve endpoint'imiz /api/properties/serve-file/<yol> ise:
-    return `${apiClient.defaults.baseURL}/properties/serve-file/${relativePath.replace(/^\/uploads\//, '')}`;
-    // Bu kısım dosya sunma stratejinize göre ayarlanmalı!
-    // Mevcut PropertyPhoto/Document.to_dict() /uploads/... şeklinde bir URL üretiyor.
-    // Ve properties/routes.py'deki serve_property_file /uploads/<path:filepath> alıyor.
-    // Bu durumda, apiClient.defaults.baseURL'den /api'yi çıkarıp /uploads ile birleştirmek doğru olur.
-    // Örneğin, baseURL http://localhost:5000/api ise, sonuç http://localhost:5000/uploads/... olmalı.
+const getMediaUrl = (relativePath) => {
+    if (!relativePath) return '#'; // Geçersiz yol için placeholder
+    // Backend'den gelen URL'nin /uploads/ ile başladığını varsayıyoruz
+    // (PropertyPhoto ve PropertyDocument to_dict() metodlarına göre)
+    // ve Flask app'imiz /uploads/ altında UPLOAD_FOLDER'dan dosya sunuyor.
+    // (Bu, app/__init__.py veya ayrı bir blueprint'te ayarlanmış olmalı)
+    // VEYA serve_property_file endpoint'ini kullanıyoruz.
+    // Mevcut `serve_property_file` endpoint'i /api/properties/serve-file/... şeklinde
+    // `PropertyPhoto/Document.to_dict()` metodundaki URL'ler buna göre güncellenmeli.
+    // Şimdilik, to_dict()'in tam ve erişilebilir bir URL döndürdüğünü varsayalım.
+    // Eğer to_dict /uploads/... döndürüyorsa ve serve_property_file /api/properties/serve-file/... ise
+    // bu URL'leri eşleştirmek gerekir.
+    // Örnek olarak, to_dict() içindeki URL'leri şöyle güncelleyebiliriz:
+    // 'url': f"/api/properties/serve-file/properties/{str(self.property_id)}/photos/{self.file_name}"
+    // Bu durumda getMediaUrl'e gerek kalmaz, doğrudan photo.url kullanılabilir.
+    // Geçici olarak, apiClient.defaults.baseURL'den /api'yi çıkarıp birleştirelim:
     const base = apiClient.defaults.baseURL.substring(0, apiClient.defaults.baseURL.lastIndexOf('/api'));
-    return `${base}${relativePath}`;
+    if (relativePath && relativePath.startsWith('/uploads/')) {
+        return `${base}${relativePath}`;
+    }
+    return relativePath || '#'; // Eğer tam URL geliyorsa veya hata varsa
 };
 
 
-// --- TKGM JSON İşleme ---
 const handleTkgmJsonFileChange = (event) => {
-  tkgmJsonFile.value = event.target.files[0];
-  tkgmParseError.value = null;
+  const file = event.target.files[0];
+  if (file) {
+      if (file.type !== "application/json") {
+          tkgmParseError.value = "Lütfen geçerli bir JSON dosyası seçin (.json).";
+          event.target.value = ''; // Input'u temizle
+          return;
+      }
+      tkgmJsonFile.value = file;
+      tkgmParseError.value = null;
+  } else {
+      tkgmJsonFile.value = null;
+  }
 };
 const parseTkgmJson = async () => {
-  if (!tkgmJsonFile.value) {
-    tkgmParseError.value = "Lütfen bir JSON dosyası seçin.";
-    return;
-  }
-  tkgmParseLoading.value = true;
-  tkgmParseError.value = null;
+  if (!tkgmJsonFile.value) { tkgmParseError.value = "Lütfen bir JSON dosyası seçin."; return; }
+  tkgmParseLoading.value = true; tkgmParseError.value = null; formSubmitError.value = null;
   const reader = new FileReader();
   reader.onload = async (e) => {
     try {
       const jsonData = JSON.parse(e.target.result);
       const response = await apiClient.post('/properties/parse-tkgm-json', jsonData);
       const parsedData = response.data;
-      // Formu doldur
-      property.title = parsedData.title || property.title;
-      property.property_type = parsedData.property_type || property.property_type;
-      property.listing_type = parsedData.listing_type || property.listing_type;
-      property.address_line1 = parsedData.address_line1 || property.address_line1;
-      property.address_line2 = parsedData.address_line2 || property.address_line2;
-      property.city = parsedData.city || property.city;
-      property.district = parsedData.district || property.district;
-      property.neighborhood = parsedData.neighborhood || property.neighborhood;
-      property.latitude = parsedData.latitude !== null ? parsedData.latitude : property.latitude;
-      property.longitude = parsedData.longitude !== null ? parsedData.longitude : property.longitude;
-      property.land_area_m2 = parsedData.land_area_m2 !== null ? parsedData.land_area_m2 : property.land_area_m2;
-      property.area_m2_gross = parsedData.area_m2_gross !== null ? parsedData.area_m2_gross : property.area_m2_gross;
-
-      if (typeof parsedData.details === 'object' && parsedData.details !== null) {
-        property.details = { ...property.details, ...parsedData.details };
-        if (parsedData.property_type === 'Diğer') {
-             genericDetailsString.value = JSON.stringify(property.details, null, 2);
+      
+      // Formu doldururken, sadece backend'den gelen ve property objesinde olan alanları güncelle
+      Object.keys(property).forEach(key => {
+        if (parsedData.hasOwnProperty(key) && parsedData[key] !== undefined) {
+          if (key === 'details' && typeof parsedData.details === 'object' && parsedData.details !== null) {
+            property.details = { ...parsedData.details }; // Gelen detayları mevcutla birleştirme, direkt ata
+            if (parsedData.property_type === 'Diğer' || !parsedData.property_type) { // Eğer tip "Diğer" veya tanımsızsa
+               genericDetailsString.value = JSON.stringify(property.details, null, 2);
+            } else {
+               genericDetailsString.value = ''; // Diğer tipler için temizle
+            }
+          } else if (key === 'price' || key === 'latitude' || key === 'longitude' || key === 'area_m2_gross' || key === 'area_m2_net' || key === 'land_area_m2' || key === 'kaks_emsal' || key === 'taks_emsal' || key === 'gabari_max_yukseklik_metre' || key === 'max_kat_adedi') {
+            property[key] = parsedData[key] !== null ? parseFloat(parsedData[key]) : null;
+          } else {
+            property[key] = parsedData[key];
+          }
         }
+      });
+      // property_type değiştiyse detayları ayrıca ele al
+       if (parsedData.property_type && property.property_type !== parsedData.property_type) {
+          property.property_type = parsedData.property_type;
+          // handlePropertyTypeChange(); // Bu, detayları sıfırlayabilir, yukarıda zaten atanıyor.
       }
-      v$.value.$reset(); // JSON'dan sonra validasyonları sıfırla
-      alert("Veriler form alanlarına aktarıldı. Lütfen kontrol edip kaydedin.");
+
+
+      v$.value.$reset(); // Validasyonları sıfırla
+      alert("Veriler form alanlarına aktarıldı. Lütfen kontrol edin ve eksik/yanlış bilgileri düzeltin.");
     } catch (error) {
-      console.error("TKGM JSON parse/API hatası:", error);
-      tkgmParseError.value = error.response?.data?.msg || "JSON verisi işlenirken bir hata oluştu.";
+      tkgmParseError.value = error.response?.data?.msg || "JSON verisi işlenirken bir hata oluştu. Dosya formatını kontrol edin.";
     } finally {
-      tkgmParseLoading.value = false;
-      tkgmJsonFile.value = null; // Input'u temizle
-      if (document.getElementById('tkgmJsonFile')) { // DOM'da varsa inputu sıfırla
-            document.getElementById('tkgmJsonFile').value = '';
-      }
+      tkgmParseLoading.value = false; tkgmJsonFile.value = null;
+      const fileInput = document.getElementById('tkgmJsonFile');
+      if (fileInput) fileInput.value = '';
     }
   };
-  reader.onerror = () => {
-    tkgmParseError.value = "Dosya okunurken bir hata oluştu.";
-    tkgmParseLoading.value = false;
-  };
+  reader.onerror = () => { tkgmParseError.value = "Dosya okunurken bir hata oluştu."; tkgmParseLoading.value = false; };
   reader.readAsText(tkgmJsonFile.value);
 };
 
-
-// --- Fotoğraf İşlemleri ---
 const handlePhotoFilesChange = (event) => {
   const files = Array.from(event.target.files);
   photoUploadError.value = null;
+  const currentTotalPhotos = existingPhotos.value.length + photoPreviews.value.length;
+  const maxPhotos = 10; // Örneğin en fazla 10 fotoğraf
+
   files.forEach(file => {
-    if (!file.type.startsWith('image/')) {
-        photoUploadError.value = "Sadece resim dosyaları yüklenebilir.";
-        return;
+    if (currentTotalPhotos + photoFilesToUpload.value.length >= maxPhotos) {
+        photoUploadError.value = `En fazla ${maxPhotos} fotoğraf yükleyebilirsiniz.`;
+        return; // Limiti aşanları ekleme
     }
-    if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        photoUploadError.value = `Dosya boyutu çok büyük: ${file.name} (Max 5MB).`;
-        return;
-    }
-    photoFilesToUpload.value.push(file);
+    if (!file.type.startsWith('image/')) { photoUploadError.value = "Sadece resim dosyaları (.jpg, .png, .gif, .webp)."; return; }
+    if (file.size > 5 * 1024 * 1024) { photoUploadError.value = `Max 5MB: ${file.name}.`; return; }
+    
     const reader = new FileReader();
     reader.onload = (e) => {
-      photoPreviews.value.push({ url: e.target.result, file, caption: '', is_primary: photoPreviews.value.length === 0 && !isEditMode.value }); // İlk eklenen ana fotoğraf olsun (yeni eklemede)
-      if(photoPreviews.value.length === 1 && !isEditMode.value) primaryPhotoIndex.value = 0; // Otomatik seç
+      const newIndexInPreview = photoPreviews.value.length;
+      photoPreviews.value.push({ url: e.target.result, file, caption: file.name.split('.')[0] }); // Varsayılan caption
+      // Eğer hiç ana fotoğraf yoksa (ne mevcut ne de yeni aday) ve bu ilk yeni eklenen ise onu ana aday yap
+      if (primaryExistingPhotoId.value === null && primaryPhotoCandidateIndex.value === null && newIndexInPreview === 0) {
+          primaryPhotoCandidateIndex.value = newIndexInPreview;
+      }
     };
     reader.readAsDataURL(file);
+    photoFilesToUpload.value.push(file);
   });
-  event.target.value = ''; // Aynı dosyayı tekrar seçebilmek için inputu sıfırla
+  event.target.value = ''; // Input'u sıfırla
 };
 const removePhotoPreview = (index) => {
   photoFilesToUpload.value.splice(index, 1);
   photoPreviews.value.splice(index, 1);
-  if(primaryPhotoIndex.value === index) primaryPhotoIndex.value = photoPreviews.value.length > 0 ? 0 : null;
-  else if (primaryPhotoIndex.value > index) primaryPhotoIndex.value--;
+  if (primaryPhotoCandidateIndex.value === index) {
+    primaryPhotoCandidateIndex.value = photoPreviews.value.length > 0 ? 0 : null;
+  } else if (primaryPhotoCandidateIndex.value !== null && primaryPhotoCandidateIndex.value > index) {
+    primaryPhotoCandidateIndex.value--;
+  }
 };
 const deleteExistingPhoto = async (photoId) => {
     if (!propertyId.value) return;
@@ -620,26 +757,54 @@ const deleteExistingPhoto = async (photoId) => {
         try {
             await apiClient.delete(`/properties/${propertyId.value}/photos/${photoId}`);
             existingPhotos.value = existingPhotos.value.filter(p => p.id !== photoId);
+            if(primaryExistingPhotoId.value === photoId) { // Silinen ana fotoğrafsa
+                primaryExistingPhotoId.value = existingPhotos.value.length > 0 ? existingPhotos.value[0].id : null; // Varsa ilkini ana yap
+                if (primaryExistingPhotoId.value) await setExistingAsPrimary(primaryExistingPhotoId.value, true); // Backend'i de güncelle
+            }
         } catch (error) {
-            console.error("Fotoğraf silinirken hata:", error);
-            alert(`Fotoğraf silinemedi: ${error.response?.data?.msg || 'Bilinmeyen hata'}`);
+            photoUploadError.value = error.response?.data?.msg || 'Fotoğraf silinemedi.';
         } finally {
             photoDeleteLoading[photoId] = false;
         }
     }
 };
+const setExistingAsPrimary = async (photoId, skipConfirm = false) => {
+    if (!propertyId.value) return;
+    if (skipConfirm || confirm("Bu fotoğrafı ana fotoğraf olarak ayarlamak istediğinizden emin misiniz?")) {
+        // TODO: Backend'de `/properties/{propId}/photos/{photoId}/set-primary` gibi bir endpoint oluşturulmalı.
+        // Bu endpoint seçilen fotoğrafı is_primary=true yapıp diğerlerini false yapmalı.
+        console.warn(`setExistingAsPrimary çağrıldı (photoId: ${photoId}), backend endpoint'i gereklidir.`);
+        // Şimdilik frontend'de görsel olarak ayarla, backend entegrasyonu sonra.
+        primaryExistingPhotoId.value = photoId;
+        primaryPhotoCandidateIndex.value = null; // Yeni eklenecekler arasından ana seçimi kaldır
+        // existingPhotos.value.forEach(p => p.is_primary = (p.id === photoId)); // Bu satır, backend'den veri tekrar çekildiğinde ezilir.
+        // Backend'den sonra listeyi yenilemek daha doğru olur.
+        // Örnek API çağrısı:
+        try {
+            // await apiClient.put(`/properties/${propertyId.value}/photos/${photoId}/set-primary`);
+            await fetchExistingMedia(); // Backend güncelledikten sonra listeyi yenile
+            propertyStore.status.successMessage = "Ana fotoğraf güncellendi (backend entegrasyonu gerekiyor).";
+        } catch (err) {
+            console.error("Ana fotoğraf ayarlanamadı (API hatası):", err);
+            propertyStore.status.error = "Ana fotoğraf ayarlanamadı.";
+        }
+    }
+};
 
-// --- Belge İşlemleri ---
+
 const handleDocumentFilesChange = (event) => {
   const files = Array.from(event.target.files);
   documentUploadError.value = null;
+  const maxDocs = 5; // Örneğin en fazla 5 belge
+  if (existingDocuments.value.length + documentPreviews.value.length + files.length > maxDocs) {
+      documentUploadError.value = `En fazla ${maxDocs} belge yükleyebilirsiniz.`;
+      event.target.value = '';
+      return;
+  }
   files.forEach(file => {
-    if (file.size > 10 * 1024 * 1024) { // 10MB limit
-        documentUploadError.value = `Dosya boyutu çok büyük: ${file.name} (Max 10MB).`;
-        return;
-    }
+    if (file.size > 10 * 1024 * 1024) { documentUploadError.value = `Max 10MB: ${file.name}.`; return; }
     documentFilesToUpload.value.push(file);
-    documentPreviews.value.push({ file, document_type: '', description: '' });
+    documentPreviews.value.push({ file, document_type: '', description: file.name.split('.')[0] });
   });
   event.target.value = '';
 };
@@ -655,234 +820,284 @@ const deleteExistingDocument = async (docId) => {
             await apiClient.delete(`/properties/${propertyId.value}/documents/${docId}`);
             existingDocuments.value = existingDocuments.value.filter(d => d.id !== docId);
         } catch (error) {
-            console.error("Belge silinirken hata:", error);
-            alert(`Belge silinemedi: ${error.response?.data?.msg || 'Bilinmeyen hata'}`);
+            documentUploadError.value = error.response?.data?.msg || 'Belge silinemedi.';
         } finally {
             docDeleteLoading[docId] = false;
         }
     }
 };
+const getDocumentIcon = (mimeOrFilename) => { /* ... (önceki gibi) ... */
+    if (!mimeOrFilename) return 'fas fa-file';
+    const name = typeof mimeOrFilename === 'string' ? mimeOrFilename.toLowerCase() : '';
+    if (name.includes('pdf')) return 'fas fa-file-pdf';
+    if (name.includes('doc')) return 'fas fa-file-word';
+    if (name.includes('xls')) return 'fas fa-file-excel';
+    if (name.includes('ppt')) return 'fas fa-file-powerpoint';
+    if (name.includes('zip') || name.includes('rar')) return 'fas fa-file-archive';
+    if (name.includes('jpg') || name.includes('jpeg') || name.includes('png') || name.includes('gif') || name.includes('webp')) return 'fas fa-file-image';
+    if (name.includes('txt')) return 'fas fa-file-alt';
+    return 'fas fa-file';
+};
 
-// --- Ana Form Gönderme ---
-const uploadPhotos = async (targetPropertyId) => {
-    if (photoFilesToUpload.value.length === 0) return true; // Yüklenecek fotoğraf yoksa başarılı say
-    photoUploadLoading.value = true;
-    photoUploadError.value = null;
+const uploadPhotosInternal = async (targetPropertyId) => {
+    if (photoFilesToUpload.value.length === 0) return true;
+    photoUploadLoading.value = true; photoUploadError.value = null;
     const uploads = photoFilesToUpload.value.map((file, index) => {
         const formData = new FormData();
         formData.append('photo', file);
-        if (photoPreviews.value[index]?.caption) {
-            formData.append('caption', photoPreviews.value[index].caption);
-        }
-        if (index === primaryPhotoIndex.value) {
+        if (photoPreviews.value[index]?.caption) formData.append('caption', photoPreviews.value[index].caption);
+        // Ana fotoğraf adayı seçilmişse onu gönder
+        if (primaryPhotoCandidateIndex.value !== null && index === primaryPhotoCandidateIndex.value) {
             formData.append('is_primary', 'true');
+        } else {
+            formData.append('is_primary', 'false');
         }
         return apiClient.post(`/properties/${targetPropertyId}/photos`, formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
+        }).catch(err => { // Her bir yükleme için hata yakala
+            console.error(`Fotoğraf yükleme hatası (${file.name}):`, err);
+            throw err; // Promise.all'un yakalaması için hatayı tekrar fırlat
         });
     });
     try {
         await Promise.all(uploads);
-        photoFilesToUpload.value = [];
-        photoPreviews.value = [];
-        primaryPhotoIndex.value = 0;
+        photoFilesToUpload.value = []; photoPreviews.value = []; primaryPhotoCandidateIndex.value = null;
         return true;
     } catch (error) {
-        console.error("Fotoğraf yükleme hatası:", error);
-        photoUploadError.value = error.response?.data?.msg || "Fotoğraflar yüklenirken bir hata oluştu.";
+        // Promise.all'dan gelen ilk hatayı al
+        photoUploadError.value = error.response?.data?.msg || "Bir veya daha fazla fotoğraf yüklenirken hata oluştu.";
         return false;
-    } finally {
-        photoUploadLoading.value = false;
-    }
+    } finally { photoUploadLoading.value = false; }
 };
-const uploadDocuments = async (targetPropertyId) => {
+const uploadDocumentsInternal = async (targetPropertyId) => {
     if (documentFilesToUpload.value.length === 0) return true;
-    documentUploadLoading.value = true;
-    documentUploadError.value = null;
-    const uploads = documentFilesToUpload.value.map((file, index) => {
+    documentUploadLoading.value = true; documentUploadError.value = null;
+    const uploads = documentFilesToUpload.value.map((previewItem) => { // Artık previewItem üzerinden gidiyoruz
         const formData = new FormData();
-        formData.append('document', file);
-        if(documentPreviews.value[index]?.document_type) formData.append('document_type', documentPreviews.value[index].document_type);
-        if(documentPreviews.value[index]?.description) formData.append('description', documentPreviews.value[index].description);
+        formData.append('document', previewItem.file);
+        if(previewItem.document_type) formData.append('document_type', previewItem.document_type);
+        if(previewItem.description) formData.append('description', previewItem.description);
         return apiClient.post(`/properties/${targetPropertyId}/documents`, formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
+        }).catch(err => {
+            console.error(`Belge yükleme hatası (${previewItem.file.name}):`, err);
+            throw err;
         });
     });
     try {
         await Promise.all(uploads);
-        documentFilesToUpload.value = [];
-        documentPreviews.value = [];
+        documentFilesToUpload.value = []; documentPreviews.value = [];
         return true;
     } catch (error) {
-        console.error("Belge yükleme hatası:", error);
-        documentUploadError.value = error.response?.data?.msg || "Belgeler yüklenirken bir hata oluştu.";
+        documentUploadError.value = error.response?.data?.msg || "Bir veya daha fazla belge yüklenirken hata oluştu.";
         return false;
-    } finally {
-        documentUploadLoading.value = false;
-    }
+    } finally { documentUploadLoading.value = false; }
 };
 
 const handleSubmit = async () => {
-  formSubmitError.value = null;
-  propertyStore.resetStatus();
+  formSubmitError.value = null; propertyStore.resetStatus();
   v$.value.$validate();
-
   if (v$.value.$invalid) {
     formSubmitError.value = "Lütfen formdaki tüm zorunlu alanları doğru bir şekilde doldurun.";
+    const firstErrorElement = document.querySelector('.form-group.error input, .form-group.error select, .form-group.error textarea');
+    if (firstErrorElement) { firstErrorElement.focus({ preventScroll: true }); firstErrorElement.scrollIntoView({behavior: 'smooth', block: 'center'}); }
     return;
   }
 
   let finalDetails = { ...property.details };
-  if (property.property_type === 'Diğer' && genericDetailsString.value) {
+  if ((property.property_type === 'Diğer' || !property.property_type) && genericDetailsString.value) {
       try { finalDetails = JSON.parse(genericDetailsString.value); }
       catch (e) { finalDetails = genericDetailsString.value; }
   }
 
   const payload = { ...property, details: finalDetails, expiry_date: property.expiry_date };
-  // ... (numericFields ve boş stringleri null yapma kısmı aynı)
-  const numericFields = ['price', 'latitude', 'longitude', 'area_m2_gross', 'area_m2_net', 'land_area_m2'];
+  const numericFields = ['price', 'latitude', 'longitude', 'area_m2_gross', 'area_m2_net', 'land_area_m2', 'kaks_emsal', 'taks_emsal', 'gabari_max_yukseklik_metre', 'max_kat_adedi'];
   numericFields.forEach(field => {
-      if (payload[field] === '' || payload[field] === undefined || isNaN(parseFloat(payload[field]))) {
+      if (payload[field] === '' || payload[field] === undefined || payload[field] === null || isNaN(parseFloat(payload[field]))) {
            payload[field] = null;
-      } else {
-          payload[field] = parseFloat(payload[field]);
-      }
+      } else { payload[field] = parseFloat(payload[field]); }
   });
   if (payload.assigned_consultant_id === '') payload.assigned_consultant_id = null;
   if (payload.office_id === '') payload.office_id = null;
 
-
-  propertyStore.status.isSubmitting = true; // Genel submitting state'ini elle yönet
+  propertyStore.status.isSubmitting = true;
+  let targetPropertyId = propertyId.value;
 
   try {
-    let savedProperty;
     if (isEditMode.value) {
-      savedProperty = await propertyStore.updateProperty(propertyId.value, payload);
+      await propertyStore.updateProperty(propertyId.value, payload);
     } else {
-      savedProperty = await propertyStore.createProperty(payload);
+      const createdProp = await propertyStore.createProperty(payload);
+      if (createdProp && createdProp.id) {
+        targetPropertyId = createdProp.id;
+      } else {
+        throw new Error("Yeni portföy ID'si alınamadı, medya yüklenemiyor.");
+      }
     }
 
-    if (savedProperty && savedProperty.id) {
-      // Fotoğraf ve belgeleri kaydet/güncelle
-      const photosUploaded = await uploadPhotos(savedProperty.id);
-      const documentsUploaded = await uploadDocuments(savedProperty.id);
+    if (targetPropertyId) {
+      const photosUploaded = await uploadPhotosInternal(targetPropertyId);
+      const documentsUploaded = await uploadDocumentsInternal(targetPropertyId);
 
       if (photosUploaded && documentsUploaded) {
         propertyStore._setSuccess(isEditMode.value ? 'Portföy ve medyalar başarıyla güncellendi.' : 'Portföy ve medyalar başarıyla eklendi.');
-        router.push({ name: 'property-detail', params: { id: savedProperty.id } });
+        if (!isEditMode.value) {
+            router.push({ name: 'property-detail', params: { id: targetPropertyId } });
+        } else {
+            await loadInitialFormState(); // Formu ve medyaları yeniden yükle
+            // Başarı mesajı zaten store'da set edildi, template'te gösterilecek.
+        }
       } else {
         // Medya yüklemede hata olduysa, ana portföy işlemi başarılı olsa bile hata mesajı göster
-        formSubmitError.value = photoUploadError.value || documentUploadError.value || "Medyalar yüklenirken bir sorun oluştu.";
+        const mediaError = photoUploadError.value || documentUploadError.value || "Medyalar yüklenirken bir sorun oluştu.";
+        formSubmitError.value = (isEditMode.value ? "Portföy güncellendi ancak " : "Portföy eklendi ancak ") + mediaError;
+        propertyStore.status.error = formSubmitError.value; // Store'a da hata bilgisini yansıt
+         if (isEditMode.value) await fetchExistingMedia(); // Başarısız medya yüklemesinden sonra bile mevcutları yenile
       }
     }
   } catch (error) { // createProperty veya updateProperty'den gelen hata
     formSubmitError.value = propertyStore.status.error || "Bir hata oluştu, lütfen tekrar deneyin.";
-    console.error("Portföy formu gönderilirken hata (catch block):", error);
   } finally {
-      propertyStore.status.isSubmitting = false; // Genel submitting state'ini sıfırla
+      propertyStore.status.isSubmitting = false;
   }
 };
-
 </script>
 
 <style scoped>
-/* ... (önceki stiller) ... */
-.form-control-file {
-    padding: 0.5rem;
-    border: 1px solid #ced4da;
-    border-radius: 4px;
-    display: block;
-    width: 100%;
+/* Bir önceki mesajdaki tüm PropertyFormView stilleri buraya gelecek.
+   Özellikle .card, .form-section h3 i, .photo-previews-grid, .document-previews-list,
+   .existing-files-grid, .action-button.delete.small, .info-text, .form-control-file
+   gibi yeni eklenen veya güncellenen stiller önemli.
+*/
+@import '@fortawesome/fontawesome-free/css/all.min.css';
+
+.property-form-view { max-width: 1000px; }
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+.page-header h2 { margin: 0; font-size: 1.6rem; }
+.action-button i { margin-right: 0.4em; }
+.cancel-button { background-color: #6c757d; border-color: #6c757d; }
+.cancel-button:hover { background-color: #5a6268; border-color: #545b62;}
+
+.property-form { background-color: #fff; padding: 0; border-radius: 8px; box-shadow: none; }
+.form-section.card {
+  background-color: #fff;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  margin-bottom: 1.5rem;
 }
-.mt-1 { margin-top: 0.5rem; }
-.action-button.outlined {
-    background-color: transparent;
-    color: #007bff;
-    border: 1px solid #007bff;
+.form-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0;}
+.form-section h3 { margin-top: 0; margin-bottom: 1.5rem; color: #343a40; font-size: 1.1rem; border-bottom: 1px solid #e9ecef; padding-bottom: 0.75rem;}
+.form-section h3 i { margin-right: 0.6em; color: #007bff; font-size: 0.9em; }
+
+.form-grid { display: grid; gap: 1rem 1.5rem; }
+.form-grid.two-columns { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.form-grid.three-columns { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+
+.form-group-full { grid-column: 1 / -1; }
+.form-actions { margin-top: 2rem; text-align: right; padding: 1.5rem; background-color: #f8f9fa; border-top: 1px solid #e0e0e0; margin-left: -2rem; margin-right: -2rem; margin-bottom:-2rem; border-radius: 0 0 8px 8px;}
+.form-check { display: flex; align-items: center; margin-top: 0.5rem;}
+.form-check input[type="checkbox"] { margin-right: 0.5rem; width: auto; height: auto; }
+.form-check-label { font-weight: normal !important; margin-bottom: 0 !important;}
+
+.form-error-message { margin-bottom: 1.5rem; }
+.form-error-message ul { list-style-type: none; padding-left: 0; margin-top: 0.5rem; }
+.form-error-message ul li { margin-bottom: 0.25rem; }
+
+.form-group.error input,
+.form-group.error select,
+.form-group.error textarea {
+  border-color: #dc3545;
+  background-color: #fbeeed;
 }
-.action-button.outlined:hover {
-    background-color: #007bff;
-    color: white;
-}
-.small-error { font-size: 0.85em; margin-top: 0.5rem; }
-.photo-previews-grid, .existing-files-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 1rem;
-    margin-top: 1rem;
-}
-.photo-preview-item, .existing-file-item {
-    border: 1px solid #eee;
-    padding: 0.5rem;
-    border-radius: 4px;
-    text-align: center;
-    position: relative;
-}
-.photo-preview-item img, .existing-file-item img {
-    max-width: 100%;
-    height: 100px;
-    object-fit: cover;
-    margin-bottom: 0.5rem;
-    border-radius: 3px;
-}
-.caption-input {
-    width: calc(100% - 1rem); /* Padding'i hesaba kat */
-    margin-top: 0.5rem;
-    padding: 0.3rem;
-    font-size: 0.8em;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-}
-.caption-input.small-input {
-    margin-bottom: 0.3rem;
-}
-.photo-preview-item .action-button.delete,
-.existing-file-item .action-button.delete {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    padding: 0.1rem 0.3rem; /* Daha küçük */
-    line-height: 1; /* İkonu ortalamak için */
-}
-.document-previews-list, .existing-files-grid {
-    margin-top: 1rem;
-}
-.document-preview-item, .existing-file-item {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem;
-    border: 1px solid #eee;
-    border-radius: 4px;
-    margin-bottom: 0.5rem;
-    background-color: #f9f9f9;
-}
-.document-preview-item span, .existing-file-item span {
-    flex-grow: 1;
-    font-size: 0.9em;
-    word-break: break-all;
-}
-.document-preview-item .caption-input {
-    flex-basis: 150px; /* Sabit genişlik */
-    flex-grow: 0;
-}
-.document-link {
-    color: #007bff;
-    text-decoration: none;
-    font-weight: 500;
-}
-.document-link:hover {
-    text-decoration: underline;
-}
-.document-link i, .existing-file-item i.fa-file-alt { margin-right: 0.3em;}
-.small-spinner { font-size: 0.9em; padding: 0.5rem; text-align: left;}
+.input-errors { margin-top: 0.25rem; }
+.error-msg { color: #dc3545; font-size: 0.8em; }
+small { display: block; margin-top: 0.25rem; font-size: 0.8em; color: #6c757d; }
 
 .info-text {
-    font-size: 0.9em;
-    color: #6c757d;
-    margin-top: 0.5rem;
-    padding: 0.5rem;
-    background-color: #f8f9fa;
-    border-left: 3px solid #17a2b8;
+    font-size: 0.9em; color: #6c757d; margin-top: 0.5rem;
+    padding: 0.75rem; background-color: #f8f9fa;
+    border-left: 3px solid #17a2b8; border-radius: 0 4px 4px 0;
 }
+
+.form-control-file {
+    display: block; width: 100%; padding: .375rem .75rem;
+    font-size: 1rem; font-weight: 400; line-height: 1.5; color: #495057;
+    background-color: #fff; background-clip: padding-box;
+    border: 1px solid #ced4da; border-radius: .25rem;
+    transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+}
+.form-control-file:focus {
+    border-color: #80bdff; outline: 0;
+    box-shadow: 0 0 0 .2rem rgba(0,123,255,.25);
+}
+.form-control-file::file-selector-button {
+    padding: .375rem .75rem; margin: -.375rem -.75rem;
+    margin-inline-end: .75rem; color: #495057; background-color: #e9ecef;
+    pointer-events: none; border-color: inherit; border-style: solid;
+    border-width: 0; border-inline-end-width: 1px; border-radius: 0;
+    transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+}
+.form-control-file:hover:not(:disabled):not([readonly])::file-selector-button { background-color: #dde0e3; }
+
+.mt-1 { margin-top: 0.5rem !important; }
+.action-button.outlined {
+    background-color: transparent; color: #007bff; border: 1px solid #007bff;
+}
+.action-button.outlined:hover { background-color: #007bff; color: white; }
+.action-button.outlined i { margin-right: 0.3em; }
+
+.small-error { font-size: 0.85em; margin-top: 0.5rem; color: #dc3545; }
+
+.photo-previews-grid, .existing-files-grid.photos {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1rem; margin-top: 1rem;
+}
+.photo-preview-item, .existing-file-item.photo {
+    border: 1px solid #e0e0e0; padding: 0.75rem; border-radius: 6px;
+    text-align: center; position: relative; background-color: #fdfdfd;
+    display: flex; flex-direction: column; align-items: center;
+}
+.photo-preview-item img, .existing-file-item.photo img {
+    width: 100%; height: 100px; object-fit: cover;
+    margin-bottom: 0.75rem; border-radius: 4px; border: 1px solid #eee;
+}
+.photo-preview-item .filename, .existing-file-item.photo .filename {
+    font-size: 0.8em; color: #555; margin-bottom: 0.3rem;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;
+}
+.photo-preview-item .caption-text, .existing-file-item.photo .caption-text {
+    font-size: 0.75em; color: #777; font-style: italic; margin-bottom: 0.5rem;
+}
+.caption-input {
+    width: calc(100% - 1rem); margin-top: 0.5rem; padding: 0.4rem;
+    font-size: 0.85em; border: 1px solid #ccc; border-radius: 3px; box-sizing: border-box;
+}
+.photo-preview-item .form-check { margin-top: 0.5rem; }
+
+.document-previews-list, .existing-files-grid.documents {
+    margin-top: 1rem; display: flex; flex-direction: column; gap: 0.75rem;
+}
+.document-preview-item, .existing-file-item.document {
+    display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem;
+    border: 1px solid #e0e0e0; border-radius: 6px; background-color: #f9f9f9;
+}
+.document-preview-item span:first-child, .existing-file-item.document .document-link {
+    flex-grow: 1; font-size: 0.9em; word-break: break-all; color: #333;
+}
+.existing-file-item.document .doc-type { font-size: 0.8em; color: #6c757d; margin-left: 0.5rem;}
+.document-preview-item .caption-input { flex-basis: 180px; flex-grow: 0; margin-left: 0.5rem; }
+
+.action-button.delete.small {
+    padding: 0.2rem 0.4rem !important; line-height: 1 !important; font-size: 0.75rem !important;
+}
+.photo-preview-item .action-button.delete.small,
+.existing-file-item.photo .action-button.delete.small {
+    position: absolute; top: 8px; right: 8px;
+}
+.document-preview-item .action-button.delete.small,
+.existing-file-item.document .action-button.delete.small {
+    position: static; margin-left: auto;
+}
+.small-spinner { font-size: 0.9em; padding: 0.5rem; text-align: left;}
 </style>

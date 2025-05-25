@@ -1,27 +1,20 @@
 <template>
   <div id="app-container">
     <header class="app-header">
-      <nav>
-        <router-link to="/">Ana Sayfa</router-link>
-        <router-link v-if="isAuthenticated" to="/customers">Müşteriler</router-link>
-        <router-link v-if="isAuthenticated" to="/properties">Portföyler</router-link> <!-- PORTFÖY LİNKİ BURADA -->
-        <!-- Diğer modül linkleri buraya eklenecek (Görevler, Projeler vb.) -->
 
-        <span class="spacer"></span> <!-- Linkleri sola, kullanıcı bilgilerini/butonları sağa ayırmak için -->
+<nav>
+  <router-link to="/">Ana Sayfa</router-link>
+  <router-link v-if="isAuthenticated" to="/customers">Müşteriler</router-link>
+  <router-link v-if="isAuthenticated" to="/properties">Portföyler</router-link>
+<router-link v-if="isAuthenticated && (authStore.isAdmin || authStore.isBroker)" to="/projects">Projeler</router-link>
+  <span class="spacer"></span>
 
-        <router-link v-if="isAdmin" to="/admin/users" class="admin-link">Kullanıcı Yön.</router-link>
-        <router-link v-if="isAdmin" to="/admin/offices" class="admin-link">Ofis Yön.</router-link>
-        <router-link to="/about" class="secondary-link">Hakkında</router-link>
+  <router-link v-if="isAdmin" to="/admin/users" class="admin-link">Kullanıcı Yön.</router-link>
+  <router-link v-if="isAdmin" to="/admin/offices" class="admin-link">Ofis Yön.</router-link>
+  <router-link to="/about" class="secondary-link">Hakkında</router-link>
 
-        <template v-if="!isAuthenticated">
-          <router-link to="/login" class="auth-link">Giriş Yap</router-link>
-          <router-link to="/register" class="auth-link register">Kayıt Ol</router-link>
-        </template>
-        <template v-else>
-          <span class="user-greeting">Merhaba, {{ currentUser?.username || 'Kullanıcı' }}!</span>
-          <button @click="handleLogout" class="logout-button">Çıkış Yap</button>
-        </template>
-      </nav>
+</nav>
+
     </header>
 
     <main class="app-main">
@@ -40,11 +33,11 @@
 
 <script setup>
 import { computed, onMounted } from 'vue';
-import { useAuthStore } from './store/modules/auth';
-// import { useRouter } from 'vue-router'; // Artık logout içinde yönlendirme var
+import { useAuthStore } from './store/modules/authStore'; // Vuex store'dan authStore'u alıyoruz
+import { useRouter } from 'vue-router'; // Artık logout içinde yönlendirme var
 
 const authStore = useAuthStore();
-// const router = useRouter();
+const router = useRouter();
 
 const appTitle = computed(() => import.meta.env.VITE_APP_TITLE || 'Emlak CRM');
 const isAuthenticated = computed(() => authStore.isAuthenticated);

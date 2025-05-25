@@ -46,7 +46,7 @@
 
 <script setup>
 import { ref, onUnmounted } from 'vue';
-import { useAuthStore } from '../../store/modules/auth';
+import { useAuthStore } from '../../store/modules/authStore'; // Vuex store'dan authStore'u alıyoruz
 import router from '../../router';
 
 const authStore = useAuthStore();
